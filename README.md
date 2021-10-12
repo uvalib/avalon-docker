@@ -12,11 +12,11 @@ The project contains the Dockerfiles for all the necessary components of [Avalon
 
 ## Usage
 1. Clone this Repo
-2. Copy dotenv.example to .env and fill in the passwords and Rails secret key base.
 3. From inside the avalon-docker directory
   * `sudo chmod a+w masterfiles` to setup write permission for shared directory
   * `docker-compose pull` to get the prebuilt images from [Dockerhub](dockerhub.com)
-  * `docker-compose up` to stand up the stack
+  * `docker-compose up` to stand up the stack. `-d` option to run in background
+  * `docker exec -it avalon-docker_uva-avalon_1 bundle exec rake uva:migrate:all_derivatives` example to run rake tasks
 
 To access the site, visit http://localhost in your browser.
 
@@ -25,10 +25,24 @@ To access the site, visit http://localhost in your browser.
 * `docker-compose build --no-cache <service_name>` to build the image(s) from scratch
 * `docker ps` to see all running containers
 * `docker exec -it avalondocker_avalon_1 /bin/bash` to log into Avalon docker container
+* `docker compose exec uva-avalon /bin/bash` This also connects to the running container
+* `docker compose exec uva-avalon bundle exec rails c` is also very useful
 
-## Advanced Usage
+### Local Development
+* The docker-compose.yml file in this project is for local development only and is pre-configured for use without additional environment variables.
+* UVA customizations should go into avalon/ and:
+  * will be copied into the container when built, replacing files from the standard avalon app
+  * should mirror the [Avalon repo](https://github.com/avalonmediasystem/avalon)
+* docker-compose.yml mounts the local ./masterfiles/  into the container.
+* ./masterfiles/dropbox is the local dropbox directory
+* other persistent storage uses standard docker volumes called:
+  - streaming: nginx streaming files
+  - storage: supplemental files stored by activerecord
+  - database: the local db
+  - fedora: fedora files
+  - solr: solr files
+* Vim is available in the container
+* The first page load takes quite a while as webpacker builds the js assets allowing live code reloading
+* Attach to the container to edit the live instance, final changes need to go in `./avalon`.
+* `docker compose --build` will refresh the container with the contents of `./avalon`, but can be slow
 
-### Running on a server
-Set these Avalon env vars:
-* `SETTINGS__DOMAIN=http://<ip address or hostname>/`
-* `STREAMING_HOST=<ip address or hostname>` so Avalon crafts the right streaming URLs

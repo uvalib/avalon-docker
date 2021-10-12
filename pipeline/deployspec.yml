@@ -1,0 +1,57 @@
+#
+# deployspec.yml
+#
+
+version: 0.2
+
+env:
+  variables:
+    terraform_version: 1.0.7
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+      golang: 1.x
+    commands:
+      # update...
+      - apt-get update -y
+      - apt-get install -y ccrypt
+      - pip3 install ansible
+      # install terraform
+      - wget https://releases.hashicorp.com/terraform/${terraform_version}/terraform_${terraform_version}_linux_amd64.zip
+      - unzip terraform_${terraform_version}_linux_amd64.zip
+      - mv terraform /usr/local/bin
+
+  pre_build:
+    commands:
+      #- latest_build=$(aws --region=$AWS_REGION ssm get-parameter --name /containers/$CONTAINER_IMAGE/latest | grep "Value" | awk -F\" '{print $4}')
+      # clone terraform repo
+      - git clone https://$GITLAB_USER:$GITLAB_TOKEN@gitlab.com/uvalib/terraform-infrastructure.git
+      # decrypt the instance private key
+      - PRIVATE_KEY_NAME=avalon.lib.virginia.edu/staging/keys/avalon-staging.pem
+      - PRIVATE_KEY=$CODEBUILD_SRC_DIR/terraform-infrastructure/$PRIVATE_KEY_NAME
+      - $CODEBUILD_SRC_DIR/terraform-infrastructure/scripts/decrypt-key.ksh ${PRIVATE_KEY}.cpt $PRIVATE_KEY_NAME
+      - chmod 600 $PRIVATE_KEY
+
+  build:
+    commands:
+      - cd $CODEBUILD_SRC_DIR/terraform-infrastructure/avalon.lib.virginia.edu/staging
+      - terraform init -no-color
+      - ami=$(terraform output instance_ami | tr -d "\"")
+      - |
+        if [ -z "$ami" ]; then
+          echo "ERROR: cannot determine instance AMI" ;
+          exit 1 ;
+        fi
+      - terraform apply -auto-approve -no-color -var instance_ami="$ami" --target=local_file.inventory --target=local_file.tfvars
+      - cd ansible
+      - ansible-playbook undeploy_backend.yml
+      - ansible-playbook deploy_backend.yml
+
+#  post_build:
+#    commands:
+
+#
+# end of file
+#
