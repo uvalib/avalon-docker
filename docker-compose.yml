@@ -1,4 +1,5 @@
 version: '3.4'
+# This is for local development
 
 volumes:
   streaming:
@@ -53,8 +54,10 @@ services:
 
   hls:
     image: avalonmediasystem/nginx:latest
+    build:
+      context: ./nginx
     environment:
-      AVALON_DOMAIN: http://avalon:3000
+      AVALON_DOMAIN: http://uva-avalon:3000
     volumes:
       - streaming:/data
       - ./nginx/logs:/var/log/nginx:rw
@@ -88,7 +91,7 @@ services:
       - SETTINGS__DOMAIN=http://localhost:3000
       - DATABASE_URL=postgres://avalon:@db/avalon
       - SETTINGS__ENCODING__WORKING_FILE_PATH=/masterfiles
-      - SETTINGS_ACTIVE_STORAGE_SERVICE=local
+      - SETTINGS__ACTIVE_STORAGE__SERVICE=local
       - SETTINGS__TIMELINER__TIMELINER_URL=http://localhost:3000/timeliner
       - SETTINGS__EMAIL__COMMENTS
       - SETTINGS__EMAIL__NOTIFICATION
