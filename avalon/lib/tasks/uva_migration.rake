@@ -28,7 +28,7 @@ namespace :uva do
     end
 
     OLD_STREAM_DIR = '/rtmp_streams/' # base folder with files to migrate
-    NEW_STREAM_DIR = ENV['ENCODE_WORK_DIR'] # usually "/streamfiles"
+    NEW_STREAM_DIR = Settings.streaming.content_path # usually "/streamfiles"
     def migrate_stream der
       if der.absolute_location.include? 'streamfiles'
         # Skip already migrated files
