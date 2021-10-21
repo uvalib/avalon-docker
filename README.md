@@ -9,20 +9,22 @@ The project contains the Dockerfiles for all the necessary components of [Avalon
 
 ### OSX
 * Install [Docker Desktop for Mac](https://docs.docker.com/docker-for-mac/install/)
+* `docker compose` is built into docker now. Don't use `docker-compose` on OSX.
 
 ## Usage
 1. Clone this Repo
 3. From inside the avalon-docker directory
   * `sudo chmod a+w masterfiles` to setup write permission for shared directory
-  * `docker-compose pull` to get the prebuilt images from [Dockerhub](dockerhub.com)
-  * `docker-compose up` to stand up the stack. `-d` option to run in background
+  * `docker compose build` to get the prebuilt images from [Dockerhub](dockerhub.com)
+  * `docker compose up` to stand up the stack. `-d` option to run in background
+  * `docker compose up --build` to build and run in one command
   * `docker exec -it avalon-docker_uva-avalon_1 bundle exec rake uva:migrate:all_derivatives` example to run rake tasks
 
 To access the site, visit http://localhost in your browser.
 
 ### Notes
-* `docker-compose logs <service_name>` to see the container(s) logs
-* `docker-compose build --no-cache <service_name>` to build the image(s) from scratch
+* `docker compose logs <service_name>` to see the container(s) logs
+* `docker compose build --no-cache <service_name>` to build the image(s) from scratch
 * `docker ps` to see all running containers
 * `docker exec -it avalondocker_avalon_1 /bin/bash` to log into Avalon docker container
 * `docker compose exec uva-avalon /bin/bash` This also connects to the running container
@@ -44,5 +46,5 @@ To access the site, visit http://localhost in your browser.
 * Vim is available in the container
 * The first page load takes quite a while as webpacker builds the js assets allowing live code reloading
 * Attach to the container to edit the live instance, final changes need to go in `./avalon`.
-* `docker compose --build` will refresh the container with the contents of `./avalon`, but can be slow
+* `docker compose up --build` will refresh the container with the contents of `./avalon` and start up the stack, but can be slow
 
