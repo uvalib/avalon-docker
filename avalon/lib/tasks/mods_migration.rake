@@ -21,7 +21,7 @@ namespace :uva do
       doc.css('//name').each do |name|
         role_name = name.css('role roleTerm[@type="text"]').text
 
-        unless ['Contributor', 'Creator'].include?(rolename) do
+        unless ['Contributor', 'Creator'].include?(rolename)
           namePart = name.css('namePart')
           namePart.content = "#{namePart.text} (#{role_name})"
         end
