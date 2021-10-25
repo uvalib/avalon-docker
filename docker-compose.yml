@@ -77,7 +77,9 @@ services:
     build:
       context: ./
       target: dev
-    command: bash -c "bundle exec rake db:migrate && bundle exec rails server -b 0.0.0.0"
+    command: bash -c "bundle exec rake db:migrate && \
+                      bundle exec rake webpacker:compile && \
+                      bundle exec rails server -b 0.0.0.0"
     depends_on:
       - db
       - fedora
