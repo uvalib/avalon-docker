@@ -36,7 +36,7 @@ namespace :uva do
       doc.css('mods > name').each do |name|
         role_name = name.css('role roleTerm[@type="text"]').text
 
-        unless ['Contributor', 'Creator'].include?(rolename)
+        unless ['Contributor', 'Creator'].include?(role_name)
           namePart = name.at_css('namePart')
           if namePart.text.end_with?("(#{role_name})")
             puts "Already migrated: #{namePart.text}"
