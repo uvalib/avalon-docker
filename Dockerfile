@@ -1,14 +1,13 @@
 FROM avalonmediasystem/avalon:7.2.1 as base
 USER root
-RUN  apt-get install -y --no-install-recommends shared-mime-info
+RUN  apt-get install -y --no-install-recommends shared-mime-info build-essential
 COPY --chown=app:app ./avalon /home/app/avalon
 USER app
 
 
 FROM base AS dev
 USER root
-RUN  apt-get install -y --no-install-recommends \
-      build-essential  vim
+RUN  apt-get install -y --no-install-recommends vim
 USER app
 RUN bundle install --with development postgres zoom
 RUN cp /home/app/avalon/config/environments/development.rb /home/app/avalon/config/environments/production.rb
