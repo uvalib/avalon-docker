@@ -7,6 +7,7 @@ volumes:
   database:
   fedora:
   solr:
+  assetCache:
 networks:
   avalon-network:
     #network_mode: host
@@ -78,7 +79,6 @@ services:
       context: ./
       target: dev
     command: bash -c "bundle exec rake db:migrate && \
-                      bundle exec rake webpacker:compile && \
                       bundle exec rails server -b 0.0.0.0"
     depends_on:
       - db
@@ -140,6 +140,7 @@ services:
       - ./masterfiles:/masterfiles/:rw
       - storage:/home/app/avalon/storage/:rw #Config another location in storage.yml
       - streaming:/streamfiles/:rw
+      - assetCache:/home/app/avalon/tmp/cache
     ports:
       - "3000:3000"
     networks:

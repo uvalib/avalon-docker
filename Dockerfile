@@ -9,8 +9,8 @@ FROM base AS dev
 USER root
 RUN  apt-get install -y --no-install-recommends vim
 USER app
+ENV  RAILS_ENV=development
 RUN bundle install --with development postgres zoom
-RUN cp /home/app/avalon/config/environments/development.rb /home/app/avalon/config/environments/production.rb
 
 FROM base as prod
 ENV  RAILS_ENV=production
