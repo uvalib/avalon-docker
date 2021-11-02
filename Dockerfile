@@ -4,6 +4,7 @@ RUN  apt-get install -y --no-install-recommends shared-mime-info build-essential
 COPY --chown=app:app ./avalon /home/app/avalon
 USER app
 
+RUN yarn add @uvalib/web-styles@1.3.15
 
 FROM base AS dev
 USER root
