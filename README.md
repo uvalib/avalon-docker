@@ -29,6 +29,7 @@ To access the site, visit http://localhost in your browser.
 * `docker exec -it avalondocker_avalon_1 /bin/bash` to log into Avalon docker container
 * `docker compose exec uva-avalon /bin/bash` This also connects to the running container
 * `docker compose exec uva-avalon bundle exec rails c` is also very useful
+* `docker system prune` is handy if you start running low on disk space
 
 ### Local Development
 * The docker-compose.yml file in this project is for local development only and is pre-configured for use without additional environment variables.
