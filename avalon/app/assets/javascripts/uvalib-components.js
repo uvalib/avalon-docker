@@ -1,4 +1,4 @@
-let version = "0.0.0";
+let version = "0.0.2";
 let baseUrl = `https://unpkg.internal.lib.virginia.edu/v${version}/`;
 let loadModule = (url)=>{
         let script = document.createElement('script');
