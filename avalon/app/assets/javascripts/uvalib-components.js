@@ -9,6 +9,7 @@ let uvalib_analytics_setup = ()=>{
         document.head.appendChild(script);
     });
 
+    // events - [category, action, name, value]
     let trackEvent = (events)=>{
         if (Array.isArray(events) && events.length>0) {
             document.dispatchEvent(new CustomEvent("uvalib-analytics-event", {
@@ -37,10 +38,19 @@ let uvalib_analytics_setup = ()=>{
                 // Analytics loaded, lets track some events
                 let videoPlayer = document.querySelector('mediaelementwrapper');
                 if (videoPlayer) {
-
-                    // Video played
-                    // Video paused
-                    // Video ended
+                    let title = document.title.replace(/\- Avalon.*/,"").trim();
+                    // Video timeupdate - The playing position has changed (like when the user fast forwards to a different point in the media)
+                    videoPlayer.addEventListener('timeupdate',()=>{ trackEvent(['media','timeupdate',title,affiliation]); });
+                    // Video seeked - The seeking attribute is set to false indicating that seeking has ended
+                    videoPlayer.addEventListener('seeked',()=>{ trackEvent(['media','seeked',title,affiliation]); })
+                    // Video playing - The media actually has started playing
+                    videoPlayer.addEventListener('playing',()=>{ trackEvent(['media','playing',title,affiliation]); })
+                    // Video pause - The media is paused either by the user or programmatically
+                    videoPlayer.addEventListener('pause',()=>{ trackEvent(['media','pause',title,affiliation]); })
+                    // Video ended - The media has reach the end
+                    videoPlayer.addEventListener('ended',()=>{ trackEvent(['media','ended',title,affiliation]); }) 
+                    // Video volume changed - Volume is changed (including setting the volume to "mute")
+                    videoPlayer.addEventListener('volumechange',()=>{ trackEvent(['media','volumechange',title,affiliation]); })                
                 }
                 // Searched performed
             });
