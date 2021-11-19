@@ -40,7 +40,8 @@ let uvalib_analytics_setup = ()=>{
                 if (videoPlayer) {
                     let title = document.title.replace(/\- Avalon.*/,"").trim();
                     // Video timeupdate - The playing position has changed (like when the user fast forwards to a different point in the media)
-                    videoPlayer.addEventListener('timeupdate',()=>{ trackEvent(['media','timeupdate',title,affiliation]); });
+                    // ** Too noisy, perhaps renable debounced
+                    // videoPlayer.addEventListener('timeupdate',()=>{ trackEvent(['media','timeupdate',title,affiliation]); });
                     // Video seeked - The seeking attribute is set to false indicating that seeking has ended
                     videoPlayer.addEventListener('seeked',()=>{ trackEvent(['media','seeked',title,affiliation]); })
                     // Video playing - The media actually has started playing
