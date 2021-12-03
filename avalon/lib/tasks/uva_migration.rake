@@ -59,7 +59,7 @@ namespace :uva do
       else
         # copy to the new file structure
         FileUtils.mkdir_p(new_dir)
-        success = system('cp -n ', old_file, new_path) && File.exists?(new_path)
+        success = system('cp', '-n', old_file, new_path) && File.exists?(new_path)
       end
 
       if success
