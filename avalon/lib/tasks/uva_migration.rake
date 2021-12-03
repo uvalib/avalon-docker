@@ -10,7 +10,7 @@ namespace :uva do
 
       puts "Checking and migrating #{derivative_count} Derivatives"
 
-      Derivative.find_each({},{batch_size:5}) do |der|
+      Derivative.find_each({},{batch_size: 10}) do |der|
         migrate_stream(der)
       end
       puts "Finished!"
@@ -51,14 +51,22 @@ namespace :uva do
       new_name = "#{file_name}-#{quality_level}.#{file_extension}"
       new_path =  new_dir + new_name
 
-      # copy to the new file structure
-      FileUtils.mkdir_p(new_dir)
-      success = system('cp', old_file, new_path)
-      if success && File.exists?(new_path)
+      success = false
+      if File.exists?(new_path)
+        # already exists but derivative locations still needs updating
+        puts "Derivative already copied."
+        success = true
+      else
+        # copy to the new file structure
+        FileUtils.mkdir_p(new_dir)
+        success = system('cp -n ', old_file, new_path) && File.exists?(new_path)
+      end
+
+      if success
         der.absolute_location = "file://" + new_path
         der.set_streaming_locations!
         der.save
-        puts "Updated #{der.id}"
+        puts "Location updated for derivative #{der.id}"
 
       else
         puts "File transfer failed for Derivative: #{der.id}"
