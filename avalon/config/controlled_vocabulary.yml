@@ -1,7 +1,16 @@
 units:
-  - Default Unit
+  - OLE
+  - Albert and Shirley Small Special Collections Library
+  - Robertson Media Center
+  - University of Virginia School of Architecture
+  - University of Virginia McIntire Department of Music
+  - Women, Gender, and Sexuality Program
+  - University of Virginia Department of Spanish, Italian, and Portuguese
+  - Claude Moore Health Sciences Library
+  - Scholars' Lab
+  - University of Virginia Library
 identifier_types:
-  local: Catalog Key
+  local: Local Identifier
   oclc: OCLC
   lccn: LCCN
   issue number: Issue Number
@@ -32,3 +41,31 @@ rights_statements:
   http://rightsstatements.org/vocab/CNE/1.0/: Copyright Not Evaluated
   http://rightsstatements.org/vocab/UND/1.0/: Copyright Undetermined
   http://rightsstatements.org/vocab/NKC/1.0/: No Known Copyright
+name_types:
+  cre: Creator
+  act: Actor
+  arr: Arranger
+  aut: Author
+  cmp: Composer
+  cnd: Conductor
+  cng: Cinematographer
+  ctb: Contributor
+  drt: Director
+  dst: Distributor
+  edt: Editor
+  hst: Host
+  itr: Instrumentalist
+  ive: Interviewee
+  mod: Moderator
+  msd: Musical director
+  mus: Musician
+  nrt: Narrator
+  pan: Panelist
+  prf: Performer
+  pre: Presenter
+  pro: Producer
+  prn: Production Company
+  rcd: Recordist
+  aus: Screenwriter
+  sng: Singer
+  spk: Speaker
