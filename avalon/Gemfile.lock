@@ -119,10 +119,10 @@ GIT
 
 GIT
   remote: https://github.com/uvalib/omniauth-shibboleth.git
-  revision: 6c49bddabba742db9c0de2d701ff19809b2dc1ef
-  tag: v0.7.8
+  revision: acd2ef833c93a42b1bfc4a1ef64cd65f5c3fcec5
+  tag: v0.7.9
   specs:
-    omniauth-shibboleth (0.7.8)
+    omniauth-shibboleth (0.7.9)
       omniauth (~> 1.0)
 
 GEM
