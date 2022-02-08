@@ -27,7 +27,7 @@ let uvalib_analytics_setup = ()=>{
             // 1 is the id for Status (logged in or not)
             // 2 is the id for Affiliation (virginia.edu)
             let status = document.querySelector('.log-in-out').textContent.includes('Sign out');
-            let affiliation = status? document.querySelector('.log-in-out').textContent.replace(/.*\@(.*) \|.*/,'$1').trim(): "none";
+            let affiliation = status? document.querySelector('.log-in-out').textContent.replace(/.*\@(.*) \|.*/,'$1').trim(): "anonymous";
             console.info(`status: ${status}`);
             console.info(`affiliation: ${affiliation}`);
             document.querySelector('uvalib-analytics').setAttribute('variables',JSON.stringify({
@@ -54,6 +54,23 @@ let uvalib_analytics_setup = ()=>{
                     videoPlayer.addEventListener('volumechange',()=>{ trackEvent(['media','volumechange',title,affiliation]); })                
                 }
                 // Searched performed
+                if (document.querySelector('#appliedParams .constraints-label').textContent.includes('searched for:')) {
+                    // Just using the "searched for" label to make a keyword for tracking (just trowing filters together with commas)
+                    let keyword = [...document.querySelectorAll('#appliedParams .appliedFilter .constraint-value')].map(f=>f.textContent.trim().replace(/\n\s+/,'=')).join(',');
+                    // Using the category field for the affiliation
+                    let category = affiliation;
+                    let resultsCount = document.querySelector('.page_links .page_entries').textContent.includes('No entries found')?0:document.querySelector('.page_links .page_entries').textContent.trim().replace(/.*of /,'');
+                    setTimeout(()=>{
+                        document.dispatchEvent(new CustomEvent("uvalib-analytics-search", {
+                            detail: {searchQuery:keyword, searchCategory:category, resultCount: resultsCount},
+                            bubbles: true
+                        }));
+                    },1000)
+                }
+                // Track /media_objects views
+                if (window.location.pathname.indexOf('/media_objects')>-1) {
+                    setTimeout(()=>{ trackEvent(["Videos","Video Page View",affiliation]) }, 1000);
+                }
             });
         });
     });
