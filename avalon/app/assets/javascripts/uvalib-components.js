@@ -54,7 +54,8 @@ let uvalib_analytics_setup = ()=>{
                     videoPlayer.addEventListener('volumechange',()=>{ trackEvent(['media','volumechange',title,affiliation]); })                
                 }
                 // Searched performed
-                if (document.querySelector('#appliedParams .constraints-label').textContent.includes('searched for:')) {
+                let constraintLabel = document.querySelector('#appliedParams .constraints-label');
+                if (constraintLabel && constraintLabel.textContent && constraintLabel.textContent.includes('searched for:')) {
                     // Just using the "searched for" label to make a keyword for tracking (just trowing filters together with commas)
                     let keyword = [...document.querySelectorAll('#appliedParams .appliedFilter .constraint-value')].map(f=>f.textContent.trim().replace(/\n\s+/,'=')).join(',');
                     // Using the category field for the affiliation
