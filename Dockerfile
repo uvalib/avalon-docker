@@ -2,7 +2,7 @@ FROM avalonmediasystem/avalon:7.2.1 as base
 USER root
 RUN  apt-get install -y --no-install-recommends shared-mime-info build-essential
 COPY --chown=app:app ./avalon /home/app/avalon
-RUN touch cdn-signing-private-key.pem.cpt
+RUN  touch cdn-signing-private-key.pem
 USER app
 
 RUN yarn add @uvalib/web-styles@1.3.15
