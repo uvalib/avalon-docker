@@ -74,7 +74,7 @@ services:
 
   uva-avalon: &avalon
     image: avalonmediasystem/avalon:7.2.1
-    #platform: linux/arm64 # May be needed for arm Macs
+    platform: linux/arm64 # May be needed for arm Macs
     build:
       context: ./
       target: dev
@@ -92,20 +92,28 @@ services:
       #- ASSET_HOST=localhost
       - SETTINGS__DOMAIN=http://localhost:3000
       - DATABASE_URL=postgres://avalon:@db/avalon
-      - SETTINGS__ENCODING__WORKING_FILE_PATH=/masterfiles
+      #- SETTINGS__ENCODING__WORKING_FILE_PATH=/masterfiles
       - SETTINGS__ACTIVE_STORAGE__SERVICE=local
       - SETTINGS__TIMELINER__TIMELINER_URL=http://localhost:3000/timeliner
       - SETTINGS__MAX_UPLOAD_SIZE=8589934592
       - SETTINGS__EMAIL__COMMENTS
       - SETTINGS__EMAIL__NOTIFICATION
       - SETTINGS__EMAIL__SUPPORT
+      - AWS_REGION=us-east-1
+      - AWS_SECRET_ACCESS_KEY=G/Da9ug7qYhiycKJ5PxuxG7frZGF5LgaU6XQM3qq
+      - AWS_ACCESS_KEY_ID=AKIARVTNFXC6RBYKRXBG
+      - SETTINGS__ENCODING__ENGINE_ADAPTER=elastic_transcoder
+      - SETTINGS__ENCODING__PIPELINE=1644341429092-liiakj
+      - SETTINGS__ENCODING__MASTERFILE_BUCKET=avalon-archive-staging/masterfiles
+      - SETTINGS__ENCODING__DERIVATIVE_BUCKET=avalon-archive-staging/derivatives
+      - SETTINGS__ENCODING__PRESETS_PATH=config/elastic_transcoder_presets.yml
       - ENCODE_WORK_DIR=/streamfiles
       - FEDORA_BASE_PATH
       - FEDORA_NAMESPACE=avalon
       - FEDORA_URL=http://fedoraAdmin:fedoraAdmin@fedora:8080/fedora/rest
       - SETTINGS__FFMPEG__PATH=/usr/bin/ffmpeg
       - SETTINGS__MASTER_FILE_MANAGEMENT__STRATEGY=move
-      - SETTINGS__MASTER_FILE_MANAGEMENT__PATH=/masterfiles
+      - SETTINGS__MASTER_FILE_MANAGEMENT__PATH=s3://avalon-archive-staging/masterfiles/
       - SETTINGS__DROPBOX__PATH=/masterfiles/dropbox
       - SETTINGS__DROPBOX__UPLOAD_URI=/masterfiles/dropbox
       - MEDIAINFO_PATH=/usr/bin/mediainfo
@@ -124,9 +132,12 @@ services:
       - SMTP_PORT
       - SMTP_USER_NAME
       - SOLR_URL=http://solr:8983/solr/avalon
-      - SETTINGS__STREAMING__CONTENT_PATH=/streamfiles
-      - SETTINGS__STREAMING__HTTP_BASE=http://localhost:8880/avalon
-      - SETTINGS__STREAMING__SERVER=nginx
+      - SETTINGS__STREAMING__CONTENT_PATH=/
+      - SETTINGS__STREAMING__HTTP_BASE=https://avalon-streaming-dev.lib.virginia.edu/
+      - SETTINGS__STREAMING__SERVER=aws
+      - SETTINGS__STREAMING__SIGNING_KEY_ID=K3L8VSRUCWZ4A8
+      - SETTINGS__STREAMING__DEFAULT_QUALITY=medium
+      - SETTINGS__STREAMING__SIGNING_KEY
       - SYSTEM_GROUPS=administrator,group_manager,manager
       - SETTINGS__BIB_RETRIEVER__DEFAULT__PROTOCOL=z39.50
       - SETTINGS__BIB_RETRIEVER__DEFAULT__PORT=2200
