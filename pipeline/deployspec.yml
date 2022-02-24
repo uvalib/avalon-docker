@@ -34,7 +34,7 @@ phases:
       - $CODEBUILD_SRC_DIR/terraform-infrastructure/scripts/decrypt-key.ksh ${PRIVATE_KEY}.cpt $PRIVATE_KEY_NAME
       - chmod 600 $PRIVATE_KEY
       # decrypt the CDN key
-      - PRIVATE_CDN_KEY_NAME=avalon.lib.virginia.edu/staging/cdn-signing-private-key.pem
+      - PRIVATE_CDN_KEY_NAME=avalon.lib.virginia.edu/cdn/staging/cdn-signing-private-key.pem
       - PRIVATE_CDN_KEY=$CODEBUILD_SRC_DIR/terraform-infrastructure/$PRIVATE_CDN_KEY_NAME
       - $CODEBUILD_SRC_DIR/terraform-infrastructure/scripts/decrypt-key.ksh ${PRIVATE_CDN_KEY}.cpt $PRIVATE_CDN_KEY_NAME
 
