@@ -5,7 +5,11 @@ RUN  apt-get install -y  --fix-missing --no-install-recommends shared-mime-info 
   pkg-config \
   libyaz-dev
 COPY --chown=app:app ./avalon /home/app/avalon
+
 RUN  touch cdn-signing-private-key.pem
+# hd_toggle is not used but is auto loaded, causing issues
+RUN rm app/assets/javascripts/media_player_wrapper/mejs4_plugin_hd_toggle.es6
+
 USER app
 
 RUN yarn add @uvalib/web-styles@1.3.15
