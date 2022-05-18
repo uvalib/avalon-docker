@@ -83,7 +83,7 @@ auth:
       provider: :shibboleth
       params:
         callback_path: '/users/auth/shibboleth/callback'
-        request_path: '/users/auth/shibboleth'
+        request_path: '/users/auth/shibboleth/callback'
 #   configuration:
 #     - :name: Avalon Lti OAuth
 #       :provider: :lti

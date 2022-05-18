@@ -34,7 +34,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       uri.query = {lti_errormsg: msg}.to_query
       uri.to_s
     else
-      new_user_session_path(scope)
+      root_path
     end
   end
 
