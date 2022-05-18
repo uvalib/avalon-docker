@@ -1,3 +1,5 @@
+require 'omniauth'
+require 'omniauth/strategy'
 module OmniAuth
   class Shibboleth
     include OmniAuth::Strategy
@@ -6,7 +8,7 @@ module OmniAuth
     # module for shibboleth.
     option :client_options,
           callback_path: "/users/auth/shibboleth/callback",
-          request_path: "/users/auth/shibboleth"
+          request_path: "/users/auth/shibboleth/callback"
 
     # The request phase results in a redirect to a path that is configured to be hijacked by
     # mod rewrite and shibboleth apache module.
