@@ -18,10 +18,12 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   skip_before_action :verify_authenticity_token
 
   def passthru
-    begin
-      render "modules/#{params[:provider]}_auth_form"
-    rescue ActionView::MissingTemplate
-      redirect_to new_user_session_path, flash: { alert: I18n.t('devise.failure.invalid') }
+    provider = Avalon::Authentication::Providers.find {|p| p[:provider] == :shibboleth }
+    if provider && callback = provider.dig(:params, :callback_path)
+      redirect_to callback
+    else
+      Rails.logger.error "Shibboleth requires a callback path."
+      raise "Shibboleth error"
     end
   end
 
@@ -34,7 +36,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       uri.query = {lti_errormsg: msg}.to_query
       uri.to_s
     else
-      root_path
+      new_user_session_path(scope)
     end
   end
 

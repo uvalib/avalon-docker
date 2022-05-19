@@ -1,8 +1,15 @@
 require 'omniauth'
 require 'omniauth/strategy'
-module OmniAuth
+module OmniAuth::Strategies
   class Shibboleth
     include OmniAuth::Strategy
+
+    class MissingHeader < StandardError; end
+
+    def self.inherited(subclass)
+      OmniAuth::Strategy.included(subclass)
+    end
+
     # Note, while OmniAuth seems to allow any path to be used here
     # devise does not.  This path should be hijacked by an apache
     # module for shibboleth.
@@ -13,13 +20,9 @@ module OmniAuth
     # The request phase results in a redirect to a path that is configured to be hijacked by
     # mod rewrite and shibboleth apache module.
     def request_phase
-      redirect options.callback_path
-    end
-
-    # The request phase results in a redirect to a path that is configured to be hijacked by
-    # mod rewrite and shibboleth apache module.
-    def request_phase
-      redirect options.callback_path
+      r = Rack::Response.new
+      r.redirect callback_path
+      r.finish
     end
 
     def callback_phase
