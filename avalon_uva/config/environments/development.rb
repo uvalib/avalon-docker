@@ -60,5 +60,10 @@ config.webpacker.check_yarn_integrity = false
   config.file_watcher = ActiveSupport::FileUpdateChecker
   config.reload_classes_only_on_change = false
 
+
+  config.log_level = :debug
+  config.web_console.whitelisted_ips = '0.0.0.0/0'
+
+
 end
 
