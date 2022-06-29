@@ -10,11 +10,13 @@ RUN        apt-get update && apt-get upgrade -y build-essential && apt-get autor
             git \
             ffmpeg \
             libsqlite3-dev \
+            build-essential \
+            libyaz-dev \
          && rm -rf /var/lib/apt/lists/* \
          && apt-get clean
 
-COPY        avalon_upstream/Gemfile ./Gemfile
-COPY        avalon_upstream/Gemfile.lock ./Gemfile.lock
+COPY        avalon_uva/Gemfile ./Gemfile
+COPY        avalon_uva/Gemfile.lock ./Gemfile.lock
 
 RUN         gem install bundler -v "$(grep -A 1 "BUNDLED WITH" Gemfile.lock | tail -n 1)" \
          && bundle config build.nokogiri --use-system-libraries
@@ -25,7 +27,7 @@ FROM        bundle as bundle-dev
 LABEL       stage=build
 LABEL       project=avalon
 RUN         bundle config set --local without 'production' \
-         && bundle config set --local with 'aws development test postgres' \
+         && bundle config set --local with 'aws development test postgres zoom' \
          && bundle install
 
 
@@ -54,7 +56,7 @@ RUN         echo "deb     http://ftp.us.debian.org/debian/    bullseye main cont
          && cat /etc/apt/sources.list.d/nodesource.list \
          && cat /etc/apt/sources.list.d/yarn.list
 
-RUN         apt-get update && \
+RUN       apt-get update && \
             apt-get -y dist-upgrade && \
             apt-get install -y --no-install-recommends --allow-unauthenticated \
             nodejs \
@@ -70,12 +72,14 @@ RUN         apt-get update && \
             zip \
             dumb-init \
             libsqlite3-dev \
-         && apt-get -y install mediainfo \
-         && ln -s /usr/bin/lsof /usr/sbin/
+            build-essential \
+            libyaz-dev \
+        && apt-get -y install mediainfo \
+        && ln -s /usr/bin/lsof /usr/sbin/
 
-RUN         useradd -m -U app \
-         && su -s /bin/bash -c "mkdir -p /home/app/avalon" app
-WORKDIR     /home/app/avalon
+RUN     useradd -m -U app \
+          && su -s /bin/bash -c "mkdir -p /home/app/avalon" app
+WORKDIR  /home/app/avalon
 
 
 # Build devevelopment image
@@ -84,13 +88,21 @@ LABEL       stage=final
 LABEL       project=avalon
 RUN         apt-get install -y --no-install-recommends --allow-unauthenticated \
             build-essential \
-            cmake
+            cmake \
+            vim
 
 COPY        --from=bundle-dev /usr/local/bundle /usr/local/bundle
 COPY        --from=download /chrome.deb /
 COPY        --from=download /usr/local/bin/chromedriver /usr/local/bin/chromedriver
 COPY        --from=download /usr/bin/dockerize /usr/bin/
 ADD         avalon_upstream/docker_init.sh /
+COPY        avalon_upstream/package.json .
+COPY        avalon_upstream/yarn.lock .
+RUN         yarn add @uvalib/web-styles@1.3.15
+RUN         yarn install
+
+COPY        --chown=app:app avalon_upstream /home/app/avalon
+COPY        --chown=app:app avalon_uva /home/app/avalon
 
 ARG         RAILS_ENV=development
 RUN         dpkg -i /chrome.deb || apt-get install -yf
@@ -101,7 +113,7 @@ FROM        bundle as bundle-prod
 LABEL       stage=build
 LABEL       project=avalon
 RUN         bundle config set --local without 'development test' \
-         && bundle config set --local with 'aws production postgres' \
+         && bundle config set --local with 'aws production postgres zoom' \
          && bundle install
 
 
@@ -112,6 +124,7 @@ LABEL       project=avalon
 RUN         apt-get update && apt-get install -y --no-install-recommends git ca-certificates
 COPY        avalon_upstream/package.json .
 COPY        avalon_upstream/yarn.lock .
+RUN         yarn add @uvalib/web-styles@1.3.15
 RUN         yarn install
 
 
