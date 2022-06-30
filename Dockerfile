@@ -136,6 +136,8 @@ COPY        --from=bundle-prod --chown=app:app /usr/local/bundle /usr/local/bund
 # Copy upstream Avalon, then UVA modifications
 COPY        --chown=app:app avalon_upstream .
 COPY        --chown=app:app avalon_uva .
+# hd_toggle is not used but is auto loaded, causing issues
+RUN         rm app/assets/javascripts/media_player_wrapper/mejs4_plugin_hd_toggle.es6
 
 COPY        --from=node-modules --chown=app:app yarn.lock .
 COPY        --from=node-modules --chown=app:app package.json .
