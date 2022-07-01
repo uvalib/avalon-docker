@@ -86,12 +86,13 @@ services:
       - redis
       - hls
     environment:
+      - TMPDIR=/home/app/avalon/tmp
       - APP_NAME="UVA Library Avalon"
       - SECRET_KEY_BASE=abc
       #- ASSET_HOST=localhost
       - SETTINGS__DOMAIN=http://localhost:3000
       - DATABASE_URL=postgres://avalon:@db/avalon
-      #- SETTINGS__ENCODING__WORKING_FILE_PATH=/masterfiles
+      - SETTINGS__ENCODING__WORKING_FILE_PATH
       - SETTINGS__ACTIVE_STORAGE__SERVICE=local
       - SETTINGS__TIMELINER__TIMELINER_URL=http://localhost:3000/timeliner
       - SETTINGS__MAX_UPLOAD_SIZE=8589934592

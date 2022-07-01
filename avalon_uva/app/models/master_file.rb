@@ -667,7 +667,7 @@ class MasterFile < ActiveFedora::Base
       unless File.basename(realpath) == original_name
         parent_dir = File.dirname(realpath)
         # Move files which aren't under the collection's dropbox into the root of the dropbox
-        parent_dir = dropbox_dir unless dropbox_dir.nil? || parent_dir.start_with?(dropbox_dir)
+        #parent_dir = dropbox_dir unless dropbox_dir.nil? || parent_dir.start_with?(dropbox_dir)
         path = File.join(parent_dir, original_name)
         num = 1
         while File.exist? path

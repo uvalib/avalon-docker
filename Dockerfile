@@ -91,7 +91,7 @@ RUN         apt-get install -y --no-install-recommends --allow-unauthenticated \
             cmake \
             vim
 
-COPY        --from=bundle-dev /usr/local/bundle /usr/local/bundle
+COPY        --from=bundle-dev --chown=app:app /usr/local/bundle /usr/local/bundle
 COPY        --from=download /chrome.deb /
 COPY        --from=download /usr/local/bin/chromedriver /usr/local/bin/chromedriver
 COPY        --from=download /usr/bin/dockerize /usr/bin/
@@ -103,9 +103,12 @@ RUN         yarn install
 
 COPY        --chown=app:app avalon_upstream /home/app/avalon
 COPY        --chown=app:app avalon_uva /home/app/avalon
+# hd_toggle is not used but is auto loaded, causing issues
+RUN         rm app/assets/javascripts/media_player_wrapper/mejs4_plugin_hd_toggle.es6
 
 ARG         RAILS_ENV=development
 RUN         dpkg -i /chrome.deb || apt-get install -yf
+USER        app
 
 
 # Build production gems
