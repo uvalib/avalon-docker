@@ -79,6 +79,7 @@ RUN       apt-get update && \
 
 RUN     useradd -m -U app \
           && su -s /bin/bash -c "mkdir -p /home/app/avalon" app
+RUN     su -s /bin/bash -c "mkdir -p /home/app/avalon/tmp" app && chmod +t /home/app/avalon/tmp
 WORKDIR  /home/app/avalon
 
 
@@ -151,7 +152,7 @@ ENV         RAILS_ENV=production
 
 RUN         SECRET_KEY_BASE=$(ruby -r 'securerandom' -e 'puts SecureRandom.hex(64)') bundle exec rake webpacker:compile
 RUN         SECRET_KEY_BASE=$(ruby -r 'securerandom' -e 'puts SecureRandom.hex(64)') bundle exec rake assets:precompile
-RUN         cp config/controlled_vocabulary.yml.example config/controlled_vocabulary.yml
+#RUN         cp config/controlled_vocabulary.yml.example config/controlled_vocabulary.yml
 
 
 # Build production image
