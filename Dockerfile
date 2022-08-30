@@ -36,9 +36,11 @@ FROM        ruby:2.7-bullseye as download
 LABEL       stage=build
 LABEL       project=avalon
 RUN         curl -L https://github.com/jwilder/dockerize/releases/download/v0.6.1/dockerize-linux-amd64-v0.6.1.tar.gz | tar xvz -C /usr/bin/
-RUN         curl https://chromedriver.storage.googleapis.com/2.46/chromedriver_linux64.zip -o /usr/local/bin/chromedriver \
-         && chmod +x /usr/local/bin/chromedriver
 RUN         curl https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o /chrome.deb
+RUN         chrome_version=`dpkg-deb -f /chrome.deb Version | cut -d '.' -f 1-3`
+RUN         chromedriver_version=`curl https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${chrome_version}`
+RUN         curl https://chromedriver.storage.googleapis.com/index.html?path=${chromedriver_version} -o /usr/local/bin/chromedriver \
+         && chmod +x /usr/local/bin/chromedriver
 RUN      apt-get -y update && apt-get install -y ffmpeg
 
 
@@ -56,7 +58,7 @@ RUN         echo "deb     http://ftp.us.debian.org/debian/    bullseye main cont
          && cat /etc/apt/sources.list.d/nodesource.list \
          && cat /etc/apt/sources.list.d/yarn.list
 
-RUN       apt-get update && \
+RUN         apt-get update && \
             apt-get -y dist-upgrade && \
             apt-get install -y --no-install-recommends --allow-unauthenticated \
             nodejs \
@@ -87,7 +89,7 @@ WORKDIR  /home/app/avalon
 FROM        base as dev
 LABEL       stage=final
 LABEL       project=avalon
-RUN         apt-get install -y --no-install-recommends --allow-unauthenticated \
+RUN         apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
             build-essential \
             cmake \
             vim
@@ -96,16 +98,15 @@ COPY        --from=bundle-dev --chown=app:app /usr/local/bundle /usr/local/bundl
 COPY        --from=download /chrome.deb /
 COPY        --from=download /usr/local/bin/chromedriver /usr/local/bin/chromedriver
 COPY        --from=download /usr/bin/dockerize /usr/bin/
-ADD         avalon_upstream/docker_init.sh /
-COPY        avalon_upstream/package.json .
-COPY        avalon_upstream/yarn.lock .
+
+COPY        avalon_upstream /home/app/avalon
 RUN         yarn add @uvalib/web-styles@1.3.15
 RUN         yarn install
 
-COPY        --chown=app:app avalon_upstream /home/app/avalon
-COPY        --chown=app:app avalon_uva /home/app/avalon
-# hd_toggle is not used but is auto loaded, causing issues
-RUN         rm app/assets/javascripts/media_player_wrapper/mejs4_plugin_hd_toggle.es6
+COPY        avalon_uva /home/app/avalon
+RUN         bundle exec rake webpacker:compile
+
+RUN         chown app:app -R /home/app/avalon
 
 ARG         RAILS_ENV=development
 RUN         dpkg -i /chrome.deb || apt-get install -yf
@@ -140,8 +141,6 @@ COPY        --from=bundle-prod --chown=app:app /usr/local/bundle /usr/local/bund
 # Copy upstream Avalon, then UVA modifications
 COPY        --chown=app:app avalon_upstream .
 COPY        --chown=app:app avalon_uva .
-# hd_toggle is not used but is auto loaded, causing issues
-RUN         rm app/assets/javascripts/media_player_wrapper/mejs4_plugin_hd_toggle.es6
 
 COPY        --from=node-modules --chown=app:app yarn.lock .
 COPY        --from=node-modules --chown=app:app package.json .

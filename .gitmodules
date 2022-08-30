@@ -1,4 +1,4 @@
 [submodule "avalon_upstream"]
 	path = avalon_upstream
 	url = https://github.com/avalonmediasystem/avalon.git
-	branch = v7.3
+	branch = 90832296809f3684405acb7b4e44d7ed0720d92e
