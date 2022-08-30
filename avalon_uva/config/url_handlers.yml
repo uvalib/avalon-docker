@@ -19,4 +19,3 @@ aws:
   http:
     video: <%=http_base%>/<%=path%>/<%=filename%>.<%=extension%>
     audio: <%=http_base%>/<%=path%>/<%=filename%>.<%=extension%>
-

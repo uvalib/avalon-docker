@@ -8,6 +8,7 @@ volumes:
   fedora:
   solr:
   assetCache:
+  nodeModules:
 networks:
   avalon-network:
     #network_mode: host
@@ -77,7 +78,7 @@ services:
     build:
       context: ./
       target: dev
-    command: bash -c "bundle exec rake db:migrate && \
+    command: bash -c "./docker_init.sh && \
                       bundle exec rails server -b 0.0.0.0"
     depends_on:
       - db
@@ -120,6 +121,7 @@ services:
       - RAILS_ENV=development
       - RAILS_LOG_TO_STDOUT=true
       - RAILS_SERVE_STATIC_FILES=true
+      - RAILS_ADDITIONAL_HOSTS=avalon
       - SETTINGS__REDIS__HOST=redis
       - SETTINGS__REDIS__PORT=6379
       - SMTP_ADDRESS
@@ -152,6 +154,7 @@ services:
       - storage:/home/app/avalon/storage/:rw #Config another location in storage.yml
       - streaming:/streamfiles/:rw
       - assetCache:/home/app/avalon/tmp/cache
+      - nodeModules:/home/app/avalon/node_modules
     ports:
       - "3000:3000"
     networks:
