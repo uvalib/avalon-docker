@@ -23,5 +23,5 @@ if server_options
   # See https://blog.saeloun.com/2019/10/31/rails-6-adds-guard-against-dns-rebinding-attacks.html
   Rails.application.config.hosts << server_options[:host]
   Rails.application.config.hosts << ENV['RAILS_ADDITIONAL_HOSTS'] if ENV['RAILS_ADDITIONAL_HOSTS'].present?
-  Rails.application.config.host_authorization = { exclude: ->(request) { request.path == '/users/auth/shibboleth/callback' } }
+  Rails.application.config.host_authorization = { exclude: ->(request) { request.path =~ /users\/auth\/shibboleth\/callback/ } }
 end
