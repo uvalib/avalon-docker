@@ -130,4 +130,6 @@ Rails.application.configure do
 
   # Additional production specific initializers
   Dir["config/environments/production/*.rb"].each {|file| load file }
+
+  Rails.application.config.hosts.clear
 end
