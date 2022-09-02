@@ -20,9 +20,9 @@ module OmniAuth::Strategies
     # The request phase results in a redirect to a path that is configured to be hijacked by
     # mod rewrite and shibboleth apache module.
     def request_phase
-      r = Rack::Response.new
-      r.redirect callback_path
-      r.finish
+      request_uri = full_host + callback_path
+      log :info, "Shibboleth redirect #{request_uri}"
+      redirect request_uri
     end
 
     def callback_phase
