@@ -49,9 +49,9 @@ let uvalib_analytics_setup = ()=>{
                     // Video pause - The media is paused either by the user or programmatically
                     videoPlayer.addEventListener('pause',()=>{ trackEvent(['media','pause',title,affiliation]); })
                     // Video ended - The media has reach the end
-                    videoPlayer.addEventListener('ended',()=>{ trackEvent(['media','ended',title,affiliation]); }) 
+                    videoPlayer.addEventListener('ended',()=>{ trackEvent(['media','ended',title,affiliation]); })
                     // Video volume changed - Volume is changed (including setting the volume to "mute")
-                    videoPlayer.addEventListener('volumechange',()=>{ trackEvent(['media','volumechange',title,affiliation]); })                
+                    videoPlayer.addEventListener('volumechange',()=>{ trackEvent(['media','volumechange',title,affiliation]); })
                 }
                 // Searched performed
                 let constraintLabel = document.querySelector('#appliedParams .constraints-label');
@@ -69,7 +69,7 @@ let uvalib_analytics_setup = ()=>{
                     },1000)
                 }
                 // Track /media_objects views
-                if (window.location.pathname.indexOf('/media_objects')>-1) {
+                if (window.location.pathname.match(/(?:\/playlists\/)|(?:\/media_objects\/)/) !== null) {
                     setTimeout(()=>{ trackEvent(["Videos","Video Page View",affiliation]) }, 1000);
                 }
             });
