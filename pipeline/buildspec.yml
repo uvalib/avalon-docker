@@ -4,9 +4,8 @@
 
 version: 0.2
 
-#env:
-#  variables:
-#    name: value
+env:
+  git-credential-helper: yes
 
 phases:
   install:
