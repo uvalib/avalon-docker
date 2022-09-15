@@ -11,7 +11,7 @@ env:
 phases:
   install:
     runtime-versions:
-      python: 3.7
+      python: 3.x
       golang: 1.x
     commands:
       # update...
