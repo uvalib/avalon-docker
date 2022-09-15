@@ -1,5 +1,4 @@
 .bundle
-*/.git
 .DS_Store
 .gitignore
 .env
