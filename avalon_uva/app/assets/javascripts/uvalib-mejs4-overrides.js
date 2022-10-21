@@ -1,5 +1,8 @@
 $(document).ready(function() {
-  document.getElementById('searchField').addEventListener('keydown', function(e){
-    e.stopPropagation();
-  }, false);
+  var searchField = document.getElementById('searchField')
+  if(searchField) {
+    searchField.addEventListener('keydown', function(e){
+      e.stopPropagation();
+    }, false);
+  }
 });
