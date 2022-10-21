@@ -68,6 +68,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       end
       if auth_type == 'shibboleth'
         user_session[:virtual_groups] = request.env["omniauth.auth"].extra.affiliations
+        params[:url] = request.env['HTTP_REFERER']
       end
     end
 
