@@ -19,6 +19,10 @@ if server_options
     ApplicationController.default_url_options = server_options
   end
 
+  # Required for rails 6+
+  # See https://blog.saeloun.com/2019/10/31/rails-6-adds-guard-against-dns-rebinding-attacks.html
+  Rails.application.config.hosts << server_options[:host]
+  Rails.application.config.hosts << ENV['RAILS_ADDITIONAL_HOSTS'] if ENV['RAILS_ADDITIONAL_HOSTS'].present?
   Rails.application.config.hosts.clear
 
 end

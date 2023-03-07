@@ -68,6 +68,8 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       end
       if auth_type == 'shibboleth'
         user_session[:virtual_groups] = request.env["omniauth.auth"].extra.affiliations
+        #Rails.logger.info "request: #{request.env.to_h}"
+        #Rails.logger.info "user_session: #{user_session.to_h}"
         params[:url] = request.env['HTTP_REFERER']
       end
     end
@@ -92,5 +94,10 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     support_email = Settings.email.support
     notice_text = I18n.t('errors.deleted_auth_error') % [support_email, support_email]
     redirect_to root_path, flash: { error: notice_text.html_safe }
+  end
+
+  rescue_from OAuth::Signature::UnknownSignatureMethod do |exception|
+    notice_text = I18n.t('errors.general_auth_error')
+    redirect_to root_path, flash: { error: notice_text }
   end
 end

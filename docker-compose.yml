@@ -46,6 +46,8 @@ services:
         - AVALON_BRANCH=v7.2.1
     volumes:
       - solr:/opt/solr/server/solr/mycores
+    tmpfs:
+      - /tmp
     entrypoint:
       - docker-entrypoint.sh
       - solr-precreate
