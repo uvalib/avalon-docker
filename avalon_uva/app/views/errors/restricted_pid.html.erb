@@ -18,7 +18,6 @@ Unless required by applicable law or agreed to in writing, software distributed
     <% if current_user.nil? %>
       <h2>Please sign in to view this content</h2>
       <p>You're not signed in. You may be able to view this item after signing in.</p>
-      <% session[:previous_url] = request.fullpath unless request.xhr? %>
       <%= link_to 'Sign in', main_app.new_user_session_path, class: "btn btn-info" %>
     <% else %>
       <h2>Restricted Content</h2>
