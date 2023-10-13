@@ -70,8 +70,8 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
         user_session[:virtual_groups] = request.env["omniauth.auth"].extra.affiliations
         #Rails.logger.info "request: #{request.env.to_h}"
         #Rails.logger.info "user_session: #{user_session.to_h}"
-        Rails.logger.info "find user : params[] = #{params}"
-        Rails.logger.info "find user : referrer = #(request.env['HTTP_REFERER']}"
+        Rails.logger.info "find_user : params[] = #{params}"
+        Rails.logger.info "find_user : referrer = #{request.env['HTTP_REFERER']}"
         # params[:url] = request.env['HTTP_REFERER']       
       end
     end
