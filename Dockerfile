@@ -12,6 +12,7 @@ RUN        apt-get update && apt-get upgrade -y build-essential && apt-get autor
             libsqlite3-dev \
             build-essential \
             libyaz-dev \
+         && apt-get upgrade ffmpeg \
          && rm -rf /var/lib/apt/lists/* \
          && apt-get clean
 
