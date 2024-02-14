@@ -11,10 +11,16 @@ RUN        apt-get update && apt-get upgrade -y build-essential && apt-get autor
             ffmpeg \
             libsqlite3-dev \
             build-essential \
-            libyaz-dev \
-         && apt-get upgrade ffmpeg \
-         && rm -rf /var/lib/apt/lists/* \
-         && apt-get clean
+            libyaz-dev
+# For newer ffmpeg:
+RUN         apt-get install -y --no-install-recommends --fix-missing dirmngr software-properties-common apt-transport-https \
+            && gpg --list-keys \
+            && gpg --no-default-keyring --keyring /usr/share/keyrings/deb-multimedia.gpg --keyserver keyserver.ubuntu.com --recv-keys 5C808C2B65558117 \
+            && echo "deb [signed-by=/usr/share/keyrings/deb-multimedia.gpg] https://www.deb-multimedia.org $(lsb_release -sc) main non-free" \
+            | tee /etc/apt/sources.list.d/deb-multimedia.list \
+            && apt-get update && apt-get install -y --no-install-recommends --fix-missing ffmpeg
+RUN         rm -rf /var/lib/apt/lists/* \
+            && apt-get clean
 
 COPY        avalon_uva/Gemfile ./Gemfile
 COPY        avalon_uva/Gemfile.lock ./Gemfile.lock
