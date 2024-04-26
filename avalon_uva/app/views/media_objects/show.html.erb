@@ -18,9 +18,8 @@ Unless required by applicable law or agreed to in writing, software distributed
 
 <ol class="breadcrumb">
     <li style="padding-bottom: 0px" class="breadcrumb-item"><%= link_to 'Home', main_app.root_path %></li>
-    <li style="padding-bottom: 0px" class="breadcrumb-item"><%= link_to @media_object.collection.name, collection_path(@media_object.collection.id) %>
-    </li>
-    <li class="breadcrumb-item active" style="padding-bottom: 0px"><%= @media_object.title %></li>
+    <li style="padding-bottom: 0px" class="breadcrumb-item"><%= link_to 'Collections', main_app.collections_path %></li>
+    <li style="padding-bottom: 0px" class="breadcrumb-item"><%= link_to @media_object.collection.name, collection_path(@media_object.collection.id) %></li>
 </ol>
 
 <div class="page-title-wrapper">
