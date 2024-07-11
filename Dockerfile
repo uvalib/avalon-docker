@@ -107,7 +107,6 @@ COPY        --from=download /usr/local/bin/chromedriver /usr/local/bin/chromedri
 COPY        --from=download /usr/bin/dockerize /usr/bin/
 
 COPY        avalon_upstream /home/app/avalon
-RUN         yarn add @uvalib/web-styles@1.3.15
 RUN         yarn install
 
 COPY        avalon_uva /home/app/avalon
@@ -136,7 +135,6 @@ LABEL       project=avalon
 RUN         apt-get update && apt-get install -y --no-install-recommends git ca-certificates
 COPY        avalon_upstream/package.json .
 COPY        avalon_upstream/yarn.lock .
-RUN         yarn add @uvalib/web-styles@1.3.15
 RUN         yarn install
 
 
