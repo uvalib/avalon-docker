@@ -148,14 +148,11 @@ COPY        --from=bundle-prod --chown=app:app /usr/local/bundle /usr/local/bund
 COPY        --chown=app:app avalon_upstream .
 COPY        --chown=app:app avalon_uva .
 
-COPY        --from=node-modules --chown=app:app yarn.lock .
-COPY        --from=node-modules --chown=app:app package.json .
 COPY        --from=node-modules --chown=app:app /node_modules ./node_modules
 
 USER        app
 ENV         RAILS_ENV=production
 
-RUN         SECRET_KEY_BASE=$(ruby -r 'securerandom' -e 'puts SecureRandom.hex(64)') bundle exec rake webpacker:compile
 RUN         SECRET_KEY_BASE=$(ruby -r 'securerandom' -e 'puts SecureRandom.hex(64)') bundle exec rake assets:precompile
 #RUN         cp config/controlled_vocabulary.yml.example config/controlled_vocabulary.yml
 

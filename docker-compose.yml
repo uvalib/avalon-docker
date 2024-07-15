@@ -76,7 +76,6 @@ services:
       avalon-network:
 
   uva-avalon: &avalon
-    platform: linux/arm64 # May be needed for arm Macs
     build:
       context: ./
       target: dev
@@ -163,7 +162,8 @@ services:
       avalon-network:
   worker:
     <<: *avalon
-    command: bundle exec sidekiq -C config/sidekiq.yml
+    command: bash -c "./docker_init.sh && \
+                      bundle exec sidekiq -C config/sidekiq.yml"
     ports: []
     networks:
       avalon-network:
