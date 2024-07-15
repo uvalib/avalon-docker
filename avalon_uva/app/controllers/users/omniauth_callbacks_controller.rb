@@ -50,7 +50,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   end
 
   def find_user(auth_type)
-    auth_type.downcase!
+    auth_type = auth_type.downcase
     find_method = "find_for_#{auth_type}".to_sym
     find_method = :find_for_generic unless User.respond_to?(find_method)
     logger.debug "#{auth_type} :: #{current_user.inspect}"
@@ -72,7 +72,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
         #Rails.logger.info "user_session: #{user_session.to_h}"
         Rails.logger.info "find_user : params[] = #{params}"
         Rails.logger.info "find_user : referrer = #{request.env['HTTP_REFERER']}"
-        # params[:url] = request.env['HTTP_REFERER']       
+        # params[:url] = request.env['HTTP_REFERER']
       end
     end
 

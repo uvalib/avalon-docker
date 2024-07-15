@@ -1,5 +1,5 @@
 # Base stage for building gems
-FROM        ruby:2.7-bullseye as bundle
+FROM        ruby:3.2-bullseye AS bundle
 LABEL       stage=build
 LABEL       project=avalon
 RUN        apt-get update && apt-get upgrade -y build-essential && apt-get autoremove \
@@ -10,7 +10,6 @@ RUN        apt-get update && apt-get upgrade -y build-essential && apt-get autor
             git \
             ffmpeg \
             libsqlite3-dev \
-            build-essential \
             libyaz-dev
 # For newer ffmpeg:
 RUN         apt-get install -y --no-install-recommends --fix-missing dirmngr software-properties-common apt-transport-https \
@@ -28,9 +27,11 @@ COPY        avalon_uva/Gemfile.lock ./Gemfile.lock
 RUN         gem install bundler -v "$(grep -A 1 "BUNDLED WITH" Gemfile.lock | tail -n 1)" \
          && bundle config build.nokogiri --use-system-libraries
 
+ENV         RUBY_THREAD_MACHINE_STACK_SIZE 8388608
+ENV         RUBY_THREAD_VM_STACK_SIZE 8388608
 
 # Build development gems
-FROM        bundle as bundle-dev
+FROM        bundle AS bundle-dev
 LABEL       stage=build
 LABEL       project=avalon
 RUN         bundle config set --local without 'production' \
@@ -39,7 +40,7 @@ RUN         bundle config set --local without 'production' \
 
 
 # Download binaries in parallel
-FROM        ruby:2.7-bullseye as download
+FROM        ruby:3.2-bullseye AS download
 LABEL       stage=build
 LABEL       project=avalon
 RUN         curl -L https://github.com/jwilder/dockerize/releases/download/v0.6.1/dockerize-linux-amd64-v0.6.1.tar.gz | tar xvz -C /usr/bin/
@@ -52,14 +53,16 @@ RUN      apt-get -y update && apt-get install -y ffmpeg
 
 
 # Base stage for building final images
-FROM        ruby:2.7-slim-bullseye as base
+FROM        ruby:3.2-slim-bullseye AS base
 LABEL       stage=build
 LABEL       project=avalon
 RUN         echo "deb     http://ftp.us.debian.org/debian/    bullseye main contrib non-free"  >  /etc/apt/sources.list.d/bullseye.list \
          && echo "deb-src http://ftp.us.debian.org/debian/    bullseye main contrib non-free"  >> /etc/apt/sources.list.d/bullseye.list \
          && cat /etc/apt/sources.list.d/bullseye.list \
-         && apt-get update && apt-get install -y --no-install-recommends curl gnupg2 ffmpeg \
-         && curl -sL http://deb.nodesource.com/setup_12.x | bash - \
+         && mkdir -p /etc/apt/keyrings \
+         && apt-get update && apt-get install -y --no-install-recommends curl ca-certificates gnupg2 ffmpeg \
+         && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+         && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
          && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
          && echo "deb http://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
          && cat /etc/apt/sources.list.d/nodesource.list \
@@ -93,7 +96,7 @@ WORKDIR  /home/app/avalon
 
 
 # Build devevelopment image
-FROM        base as dev
+FROM        base AS dev
 LABEL       stage=final
 LABEL       project=avalon
 RUN         apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
@@ -107,10 +110,8 @@ COPY        --from=download /usr/local/bin/chromedriver /usr/local/bin/chromedri
 COPY        --from=download /usr/bin/dockerize /usr/bin/
 
 COPY        avalon_upstream /home/app/avalon
-RUN         yarn install
-
 COPY        avalon_uva /home/app/avalon
-RUN         bundle exec rake webpacker:compile
+ADD          avalon_upstream/docker_init.sh /
 
 RUN         chown app:app -R /home/app/avalon
 
@@ -120,7 +121,7 @@ USER        app
 
 
 # Build production gems
-FROM        bundle as bundle-prod
+FROM        bundle AS bundle-prod
 LABEL       stage=build
 LABEL       project=avalon
 RUN         bundle config set --local without 'development test' \
@@ -129,7 +130,7 @@ RUN         bundle config set --local without 'development test' \
 
 
 # Install node modules
-FROM        node:12-bullseye-slim as node-modules
+FROM        node:20-bullseye-slim AS node-modules
 LABEL       stage=build
 LABEL       project=avalon
 RUN         apt-get update && apt-get install -y --no-install-recommends git ca-certificates
@@ -139,7 +140,7 @@ RUN         yarn install
 
 
 # Build production assets
-FROM        base as assets
+FROM        base AS assets
 LABEL       stage=build
 LABEL       project=avalon
 COPY        --from=bundle-prod --chown=app:app /usr/local/bundle /usr/local/bundle
@@ -160,7 +161,7 @@ RUN         SECRET_KEY_BASE=$(ruby -r 'securerandom' -e 'puts SecureRandom.hex(6
 
 
 # Build production image
-FROM        base as prod
+FROM        base AS prod
 LABEL       stage=final
 LABEL       project=avalon
 COPY        --from=assets --chown=app:app /home/app/avalon /home/app/avalon
