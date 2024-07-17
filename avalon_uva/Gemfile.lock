@@ -65,6 +65,13 @@ GIT
       ims-lti
       omniauth
 
+GIT
+  remote: https://github.com/mvz/ruby-zoom.git
+  revision: e5749f54df0761555692d11ba81515278fb139d6
+  branch: use-pkg-config
+  specs:
+    zoom (0.5.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -637,6 +644,7 @@ GEM
     parser (3.2.1.0)
       ast (~> 2.4.1)
     pg (1.5.3)
+    pkg-config (1.5.6)
     popper_js (1.16.1)
     pretender (0.4.0)
       actionpack (>= 5.2)
@@ -970,7 +978,6 @@ GEM
     zk (1.10.0)
       zookeeper (~> 1.5.0)
     zookeeper (1.5.5)
-    zoom (0.5.0)
 
 PLATFORMS
   ruby
@@ -1061,6 +1068,7 @@ DEPENDENCIES
   omniauth-saml (~> 2.0)
   parallel
   pg
+  pkg-config
   pry-byebug
   pry-rails
   psych (< 4)
@@ -1104,7 +1112,7 @@ DEPENDENCIES
   webmock (~> 3.5)
   with_locking
   zk
-  zoom
+  zoom!
 
 BUNDLED WITH
    2.3.6

@@ -79,8 +79,7 @@ services:
     build:
       context: ./
       target: dev
-    command: bash -c "./docker_init.sh && \
-                      bundle exec rails server -b 0.0.0.0"
+    command: bash -c "./dev_init.sh"
     depends_on:
       - db
       - fedora
@@ -162,8 +161,7 @@ services:
       avalon-network:
   worker:
     <<: *avalon
-    command: bash -c "./docker_init.sh && \
-                      bundle exec sidekiq -C config/sidekiq.yml"
+    command: bash -c "bundle exec sidekiq -C config/sidekiq.yml"
     ports: []
     networks:
       avalon-network:

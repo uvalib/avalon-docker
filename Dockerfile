@@ -153,11 +153,7 @@ COPY        --from=node-modules --chown=app:app /node_modules ./node_modules
 USER        app
 ENV         RAILS_ENV=production
 
-
-RUN         bundle config set --local without 'development test' \
-         && bundle config set --local with 'aws production postgres zoom' \
-         && bundle install
-
+# if bundle install needs to be run here, the container is probably has an old Gemfile.lock
 RUN         SECRET_KEY_BASE=$(ruby -r 'securerandom' -e 'puts SecureRandom.hex(64)') bundle exec rake assets:precompile
 #RUN         cp config/controlled_vocabulary.yml.example config/controlled_vocabulary.yml
 

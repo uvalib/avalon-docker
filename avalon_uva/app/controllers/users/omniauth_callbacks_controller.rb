@@ -1,4 +1,4 @@
-# Copyright 2011-2022, The Trustees of Indiana University and Northwestern
+# Copyright 2011-2024, The Trustees of Indiana University and Northwestern
 #   University.  Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #
@@ -18,6 +18,11 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   skip_before_action :verify_authenticity_token
 
   def passthru
+    #begin
+    #  render "modules/#{params[:provider]}_auth_form"
+    #rescue ActionView::MissingTemplate
+    #  redirect_to new_user_session_path, flash: { alert: I18n.t('devise.failure.invalid') }
+
     provider = Avalon::Authentication::Providers.find {|p| p[:provider] == :shibboleth }
     if provider && callback = provider.dig(:params, :callback_path)
       redirect_to callback
@@ -39,6 +44,62 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       new_user_session_path(scope)
     end
   end
+  def shibboleth
+    shibboleth_callback_phase
+    @user = User.find_or_create_by_username_or_email(@uid, @uid, 'shibboleth')
+    if @user.persisted?
+      flash[:success] = I18n.t "devise.omniauth_callbacks.success", :kind => :shibboleth
+      sign_in @user, :event => :authentication
+      user_session[:virtual_groups] = @user.ldap_groups
+      user_session[:full_login] = true
+      user_session[:virtual_groups] = @affiliations
+    end
+
+    if login_popup?
+      flash[:success] = nil
+      render inline: '<html><head><script>window.close();</script></head><body></body><html>'.html_safe
+    else
+      redirect_to find_redirect_url(:shibboleth, lti_group: user_session&.dig(:lti_group))
+    end
+  end
+
+  def shibboleth_callback_phase
+    eppn = request.env['HTTP_EPPN']
+    affiliation = request.env['HTTP_AFFILIATION']
+    if (eppn.to_s.include? '@')
+        @uid = eppn;
+    elsif (affiliation)
+      parseAffiliationString(affiliation).each do | address |
+          if address.start_with? 'member@'
+            @uid = address;
+          end
+      end
+      if (@uid.nil?)
+        @uid = "unknown@unknown"
+      end
+    else
+      # this is an error... the apache module and rewrite haven't been properly setup.
+      raise "missing shibboleth header"
+    end
+
+    @affiliations = (parseAffiliationString(request.env['HTTP_AFFILIATION']) | getInferredAffiliations() | parseMemberString(request.env['HTTP_MEMBER']))
+  end
+
+  def parseAffiliationString(affiliation)
+    return [] unless affiliation.respond_to? :split
+      affiliation.split(/;/)
+  end
+
+  def parseMemberString(members)
+    return [] unless members.respond_to? :split
+    members.split(/;/)
+  end
+
+  def getInferredAffiliations()
+    return [] unless @uid.respond_to? :gsub
+    [ @uid.gsub(/.+@/, "member@") ]
+  end
+
 
   def action_missing(sym, *args, &block)
     logger.debug "Attempting to find user with #{sym.to_s} strategy"
@@ -65,14 +126,6 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
         user_session[:lti_group] = request.env["omniauth.auth"].extra.context_id
         user_session[:virtual_groups] += [user_session[:lti_group]]
         user_session[:full_login] = false
-      end
-      if auth_type == 'shibboleth'
-        user_session[:virtual_groups] = request.env["omniauth.auth"].extra.affiliations
-        #Rails.logger.info "request: #{request.env.to_h}"
-        #Rails.logger.info "user_session: #{user_session.to_h}"
-        Rails.logger.info "find_user : params[] = #{params}"
-        Rails.logger.info "find_user : referrer = #{request.env['HTTP_REFERER']}"
-        # params[:url] = request.env['HTTP_REFERER']
       end
     end
 
