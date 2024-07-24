@@ -21,15 +21,4 @@ Unless required by applicable law or agreed to in writing, software distributed
     <li style="padding-bottom: 0px" class="breadcrumb-item"><%= link_to 'Collections', main_app.collections_path %></li>
     <li style="padding-bottom: 0px" class="breadcrumb-item"><%= link_to @media_object.collection.name, collection_path(@media_object.collection.id) %></li>
 </ol>
-
-<div class="page-title-wrapper">
-  <h1>
-    <% unless @media_object.title.blank? %>
-    <%= @media_object.title %><%= " / #{@media_object.statement_of_responsibility}" if @media_object.statement_of_responsibility.present? %>
-    <% else %>
-    <%= @media_object.id %>
-    <% end %>
-  </h1>
-</div>
-
 <%= render 'item_view' %>
