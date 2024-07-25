@@ -80,10 +80,11 @@ class EncodeRecordsController < ApplicationController
           "<span data-encode-id=\"#{encode.id}\" class=\"encode-status\">#{encode_presenter.status}</span>",
           view_context.link_to(encode_presenter.id, Rails.application.routes.url_helpers.encode_record_path(encode)),
           "<div class=\"progress\"><div class=\"progress-bar #{encode_status} #{progress_class}\" data-encode-id=\"#{encode.id}\" aria-valuenow=\"#{encode_progress}\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: #{encode_progress}%\"></div></div>",
-          encode_presenter.display_title,
+          view_context.link_to(encode_presenter.master_file_id, encode_presenter.master_file_url),
           view_context.link_to(encode_presenter.media_object_id, encode_presenter.media_object_url),
           encode_presenter.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-          view_context.link_to(encode_presenter.master_file_id, encode_presenter.master_file_url)
+          encode_presenter.display_title
+
         ]
       end
     }
