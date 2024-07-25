@@ -49,3 +49,10 @@ To access the site, visit http://localhost in your browser.
 * Attach to the container to edit the live instance, final changes need to go in `./avalon`.
 * `docker compose up --build` will refresh the container with the contents of `./avalon` and start up the stack, but can be slow
 
+### Upgrade Notes
+
+* Upgrade to Avalon 7.7.2
+  * required solr upgrade to 9.x
+  * reindex with `docker exec containerID nohup bundle exec rake avalon:reindex[threads] &`
+  * `bundle exec rake avalon:migrate:collection_managers`
+  * `bundle exec rake avalon:migrate:caption_files`
