@@ -33,7 +33,7 @@ module Avalon
       end
 
       def to_h
-        result = @model.connection_db_config.configuration_hash.reject { |k,v| ['username','password'].include?(k) }
+        result = @model.connection_db_config.configuration_hash.reject { |k,v| [:username,:password].include?(k) }
         result['connected'] = connected?
         result
       end
