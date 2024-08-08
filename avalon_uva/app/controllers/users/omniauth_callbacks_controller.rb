@@ -52,7 +52,8 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       sign_in @user, :event => :authentication
       user_session[:virtual_groups] = @user.ldap_groups
       user_session[:full_login] = true
-      user_session[:virtual_groups] = @affiliations
+      user_session[:virtual_groups] += @affiliations
+      Rails.logger.info "virtual_groups: #{@affiliations}"
     end
 
     if login_popup?
