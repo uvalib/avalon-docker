@@ -36,7 +36,8 @@ class ApplicationController < ActionController::Base
 
   # TDG-1816
   rescue_from Blacklight::Exceptions::InvalidRequest do |exception|
-    if exception.message.include? "too many nested clauses"
+    Rails.logger.warn "Blacklight::Exceptions::InvalidRequest: #{exception.message}"
+    if exception.message.include? "too many boolean clauses"
       vg = user_session[:virtual_groups] || []
       Rails.logger.warn "Too many boolean clauses caused by #{current_user.try :username}'s #{vg.count} groups. Truncating"
       if vg.present?
