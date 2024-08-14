@@ -100,7 +100,7 @@ class IiifManifestPresenter
   end
 
   def combined_display_date(media_object)
-    result = media_object.date_issued
+    result = media_object.date_issued.to_s
     result += " (Creation date: #{media_object.date_created})" if media_object.date_created.present?
     result
   end
