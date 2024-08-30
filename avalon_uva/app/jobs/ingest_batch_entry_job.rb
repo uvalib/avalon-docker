@@ -78,9 +78,6 @@ class IngestBatchEntryJob < ActiveJob::Base
     # @param [BatchEntries] the entry to update
     # @param [Avalon::Batch::Entry] the entry to update
     def invalid_error(batch_entry, entry)
-      puts "Error: #{error.message}"
-      puts "Stack Trace:"
-      puts error.backtrace.join("\n")
       batch_entry.error = true
       batch_entry.complete = false
       batch_entry.current_status = 'Invalid Entry'
