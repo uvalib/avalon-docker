@@ -7,15 +7,24 @@ class GlacierRequest
   validate :check_bucket_location
 
   def send_request
-    response = RestClient.post(ENV['GLACIER_REQUEST_URL'], { email: email, bucket: bucket, bucket_key: bucket_key })
+    response = RestClient.post(ENV['GLACIER_REQUEST_URL'], request_payload)
 
-    if response.code == 200
-    else
-      errors.add(:glacier_response, response.inspect)
-    end
+    # success
+
+  rescue RestClient::Exception => e
+    errors.add(:glacier_response, error.inspect)
   end
 
-  protected
+  private
+
+  def request_payload
+    {
+      email: email,
+      bucket: bucket,
+      bucket_key: bucket_key
+    }
+  end
+
   def check_bucket_location
     uri = URI.parse(master_file.masterFile)
     self.bucket = uri.host.split('.')[0]

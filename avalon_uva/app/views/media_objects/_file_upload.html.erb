@@ -330,7 +330,7 @@ Unless required by applicable law or agreed to in writing, software distributed
     $('.glacier-request-form').on("ajax:success", (event, data, status, xhr) => {
       const flashMessage = event.currentTarget.querySelector('.flash-message');
       if (flashMessage) {
-        flashMessage.innerHTML = data;
+        flashMessage.innerHTML = "Success" + data;
       }
     }).on("ajax:error", (event) => {
       const { detail } = event;
