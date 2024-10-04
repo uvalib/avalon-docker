@@ -7,7 +7,7 @@ class GlacierRequest
   validate :check_bucket_location
 
   def send_request
-    response = RestClient.post(ENV['GLACIER_REQUEST_URL'], request_payload)
+    response = RestClient.post(ENV['GLACIER_REQUEST_URL'], query: request_payload)
 
     # success
 
@@ -19,9 +19,9 @@ class GlacierRequest
 
   def request_payload
     {
-      email: email,
       bucket: bucket,
-      bucket_key: bucket_key
+      key: bucket_key,
+      email: email
     }
   end
 
