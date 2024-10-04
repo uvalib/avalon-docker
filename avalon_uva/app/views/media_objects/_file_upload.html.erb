@@ -153,6 +153,11 @@ Unless required by applicable law or agreed to in writing, software distributed
                     </div>
                   </div>
                 <% end %>
+                <%= form_with(url: '/glacier/masterfile', class: "glacier-request-form col-sm-12 text-right") do |f| %>
+                  <%= f.hidden_field :id, value: section.id %>
+                  <%= f.submit "Request Master File", class: "btn btn-sm btn-outline text-nowrap" %>
+                  <div class="flash-message block text-left"></div>
+                <%end%>
                 <div class="section-files">
                    <!-- captions -->
                    <%= render partial: "supplemental_files_upload", locals: { section: section, label: 'Captions', tag: 'caption' } %>
@@ -320,6 +325,27 @@ Unless required by applicable law or agreed to in writing, software distributed
       $(event.currentTarget).find('.flash-message').html("Successfully updated.")
     }).on("ajax:error", (event, xhr, status, error) => {
       $(event.currentTarget).find('.flash-message').html("Failed to update.")
+    });
+
+    $('.glacier-request-form').on("ajax:success", (event, data, status, xhr) => {
+      const flashMessage = event.currentTarget.querySelector('.flash-message');
+      if (flashMessage) {
+        flashMessage.innerHTML = data;
+      }
+    }).on("ajax:error", (event) => {
+      const { detail } = event;
+      console.error(detail);
+      if (detail?.[0] && typeof detail[0] === 'object') {
+        const { master_file, validation_context, ...errorDetails } = detail[0];
+        const errorMessage = detail[0] ? JSON.stringify(errorDetails, null, 2) : 'Unknown error';
+        const flashMessage = event.currentTarget.querySelector('.flash-message');
+        if (flashMessage) {
+          flashMessage.innerHTML = '';
+          const msgEle = document.createElement('pre');
+          msgEle.textContent = errorMessage;
+          flashMessage.appendChild(msgEle);
+        }
+      }
     });
   </script>
 <% end %>

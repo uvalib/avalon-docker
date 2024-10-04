@@ -247,4 +247,6 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  post '/glacier/masterfile', to: 'glacier#request_masterfile'
 end
