@@ -11,7 +11,7 @@ class GlacierRequest
 
     if response.code == 200
     else
-      return "!200: #{response.inspect}"
+      errors.add(:glacier_response, response.inspect)
     end
   end
 
