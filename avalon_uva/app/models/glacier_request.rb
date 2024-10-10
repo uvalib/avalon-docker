@@ -12,7 +12,7 @@ class GlacierRequest
     # success
 
   rescue RestClient::Exception => e
-    errors.add(:glacier_response, error.inspect)
+    errors.add(:glacier_response, e.inspect)
   end
 
   private
