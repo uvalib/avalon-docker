@@ -15,7 +15,7 @@ phases:
       golang: 1.x
     commands:
       # update...
-      - dnf check-update
+      #- dnf check-update
       - dnf install -y ccrypt
       - pip3 install ansible
       # install terraform
