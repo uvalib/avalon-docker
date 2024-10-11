@@ -14,9 +14,9 @@ phases:
       python: 3.x
       golang: 1.x
     commands:
-      # update...
-      #- dnf check-update
-      - dnf install -y ccrypt
+      # install ccrypt
+      - dnf install -y http://ccrypt.sourceforge.net/download/1.11/ccrypt-1.11-1.x86_64.rpm
+      # and ansible
       - pip3 install ansible
       # install terraform
       - wget https://releases.hashicorp.com/terraform/${terraform_version}/terraform_${terraform_version}_linux_amd64.zip
