@@ -8,12 +8,12 @@ class GlacierRequest
 
   def send_request
     response = RestClient.post(ENV['GLACIER_REQUEST_URL'], request_payload.to_json)
-    puts response.inspect
     # success
 
   rescue RestClient::Exception => e
+    puts e
     errors.add(:rest_client, e.inspect)
-    errors.add(:response, e.response.inspect)
+    errors.add(:response, e.response.message)
   end
 
   private
