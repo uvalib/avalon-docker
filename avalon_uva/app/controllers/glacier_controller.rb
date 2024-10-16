@@ -15,10 +15,11 @@ class GlacierController < ApplicationController
       return
     end
 
-    if gr.errors
+    return render json: gr, status: :created
+    if gr.errors.present?
       render json: gr, status: :unprocessable_entity
     else
-      render json: gr, status: :success
+      render json: gr, status: :created
     end
   end
 

@@ -2,18 +2,23 @@ class GlacierRequest
   require 'rest-client'
   include ActiveModel::Model
 
-  attr_accessor :email, :bucket, :bucket_key, :master_file
+  attr_accessor :email, :bucket, :bucket_key, :master_file, :message
   validates :email, presence: true
   validate :check_bucket_location
 
   def send_request
-    response = RestClient.post(ENV['GLACIER_REQUEST_URL'], request_payload.to_json)
-    # success
+    begin
+      response = RestClient.post(ENV['GLACIER_REQUEST_URL'], request_payload.to_json)
+      self.message = "Master file requested. You will receive an email when it is ready."
 
-  rescue RestClient::Exception => e
-    puts e
-    errors.add(:rest_client, e.inspect)
-    errors.add(:response, e.response.message)
+    rescue RestClient::Exception => e
+      self.message = "Master file could not be requested."
+      errors.add(:rest_client, e.inspect)
+      errors.add(:response, e.response.message)
+    rescue StandardError => e
+      self.message = "Master file could not be requested."
+      errors.add(e.class.to_s, e.inspect)
+    end
   end
 
   private
