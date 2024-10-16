@@ -14,7 +14,7 @@ class GlacierRequest
     rescue RestClient::Exception => e
       self.message = "Master file could not be requested."
       errors.add(:rest_client, e.inspect)
-      errors.add(:response, e.response.message)
+      errors.add(:response, e.response.body)
     rescue StandardError => e
       self.message = "Master file could not be requested."
       errors.add(e.class.to_s, e.inspect)

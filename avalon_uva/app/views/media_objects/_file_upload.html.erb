@@ -335,10 +335,14 @@ Unless required by applicable law or agreed to in writing, software distributed
         flashMessage.innerHTML = '';
         const msgObj = document.createElement('pre');
         if(detail[0].response) {
-          let resp = JSON.parse(detail[0].response);
-          const {master_file, validation_context, ...details } = resp;
+          try {
+            let resp = JSON.parse(detail[0].response);
+            const {master_file, validation_context, ...details } = resp;
+            msgObj.textContent = JSON.stringify(details, null, 2);
 
-          msgObj.textContent = JSON.stringify(details, null, 2);
+          }catch(error){
+            msgObj.textContent = detail[0];
+          }
         } else {
           msgObj.textContent = detail[0];
         }
