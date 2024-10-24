@@ -76,5 +76,26 @@ namespace :uva do
         puts "S3 transfer failed for Derivative: #{der.id} - #{derivative_uuid}"
       end
     end
+
+    # A one time captions migration
+    # Pretty much the same fix as avalon:migrate:caption_files
+    desc "Migrate captions" do
+      task :captions => :environment do
+        MasterFile.find_each do |mf|
+          if mf.has_captions?
+            if mf.captions.mime_type == "application/octet-stream" && mf.captions.original_name.ends_with?("vtt")
+              puts "fixed vtt mime for #{mf.id}"
+              mf.captions.mime_type = 'text/vtt'
+              mf.captions.save!
+            else
+              puts "captions correct for #{mf.id} - name: #{mf.captions.original_name} mime: #{mf.captions.mime_type}"
+            end
+            mf.captions.update_external_index
+          end
+        end
+      end
+    end
   end
+
+
 end
