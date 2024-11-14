@@ -167,6 +167,7 @@ LABEL       stage=final
 LABEL       project=avalon
 COPY        --from=assets --chown=app:app /home/app/avalon /home/app/avalon
 COPY        --from=bundle-prod --chown=app:app /usr/local/bundle /usr/local/bundle
+COPY        --chown=app:app active_encode_uva/ffmpeg_adapter.rb /usr/local/bundle/gems/active_encode-1.2.2/lib/active_encode/engine_adapters/ffmpeg_adapter.rb
 
 USER        app
 ENV         RAILS_ENV=production
