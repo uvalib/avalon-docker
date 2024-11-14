@@ -129,15 +129,13 @@ module ActiveEncode
         pid = get_pid(id)
         encode.input.id = pid if pid.present?
 
-        was_running = running? pid
         encode.current_operations = []
         encode.created_at, encode.updated_at = get_times encode.id
         encode.errors = read_errors(id)
         exit_code = read_exit_code(id)
-        logger.info("find `#{id}': running=#{was_running}, exit_code=#{exit_code}, percent_complete=#{encode.percent_complete}, completeness_threshold=#{completeness_threshold}")
         if exit_code.present? && exit_code != 0 && exit_code != 143
           encode.state = :failed
-        elsif was_running
+        elsif running? pid
           encode.state = :running
           encode.current_operations = ["transcoding"]
         elsif progress_ended?(encode.id) && encode.percent_complete == 100
