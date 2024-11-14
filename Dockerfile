@@ -115,6 +115,9 @@ ADD          avalon_upstream/docker_init.sh /
 
 RUN         chown app:app -R /home/app/avalon
 
+COPY        active_encode_uva/ffmpeg_adapter.rb /usr/local/bundle/gems/active_encode-1.2.2/lib/active_encode/engine_adapters/ffmpeg_adapter.rb
+RUN         chown app:app /usr/local/bundle/gems/active_encode-1.2.2/lib/active_encode/engine_adapters/ffmpeg_adapter.rb
+
 ARG         RAILS_ENV=development
 RUN         dpkg -i /chrome.deb || apt-get install -yf
 USER        app
