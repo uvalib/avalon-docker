@@ -134,7 +134,6 @@ module ActiveEncode
         encode.created_at, encode.updated_at = get_times encode.id
         encode.errors = read_errors(id)
         exit_code = read_exit_code(id)
-        logger.info("find `#{id}': running=#{was_running}, exit_code=#{exit_code}, percent_complete=#{encode.percent_complete}, completeness_threshold=#{completeness_threshold}")
         if exit_code.present? && exit_code != 0 && exit_code != 143
           encode.state = :failed
         elsif was_running
@@ -145,7 +144,7 @@ module ActiveEncode
         elsif cancelled? encode.id
           encode.state = :cancelled
         elsif encode.percent_complete < (completeness_threshold || 100)
-          encode.errors.prepend("Encoding has completed but the output duration is shorter than the input")
+          encode.errors.prepend("Encoding has completed but the output duration is shorter than the input.   id=`#{id}', running=#{was_running}, exit_code=#{exit_code}, percent_complete=#{encode.percent_complete}, completeness_threshold=#{completeness_threshold}")
           encode.state = :failed
         end
 
