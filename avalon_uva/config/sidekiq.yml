@@ -20,4 +20,5 @@
   - solr_backup
   - update_dependent_permalinks
   - waveform
+  - captions
 :max_retries: 14
