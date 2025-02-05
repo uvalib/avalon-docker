@@ -169,6 +169,7 @@ group :aws, optional: true do
   gem 'aws-sdk-ses'
   gem 'aws-sdk-sqs'
   gem 'aws-sigv4'
+  gem 'aws-sdk-transcribeservice'
   gem 'cloudfront-signer'
   gem 'zk'
 end

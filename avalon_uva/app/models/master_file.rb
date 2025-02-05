@@ -174,6 +174,8 @@ class MasterFile < ActiveFedora::Base
   after_transcoding :set_default_poster_offset
   after_transcoding :update_stills_from_offset!
 
+  after_processing :generate_captions
+
   after_processing :post_processing_file_management
 
   # First and simplest test - make sure that the uploaded file does not exceed the
@@ -409,6 +411,12 @@ class MasterFile < ActiveFedora::Base
       end
     end
     result
+  end
+
+  def generate_captions
+    if !has_captions?
+      GenerateCaptionsJob.perform_later(id)
+    end
   end
 
   def absolute_location
