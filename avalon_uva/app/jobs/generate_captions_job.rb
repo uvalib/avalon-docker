@@ -79,7 +79,7 @@ class GenerateCaptionsJob < ActiveJob::Base
       when "QUEUED", "IN_PROGRESS"
         # retry later
         Rails.logger.info("Transcription job still in progress")
-        GenerateCaptionsJob.perform_in(POLL_TIME, master_file_id)
+        GenerateCaptionsJob.set(wait: POLL_TIME).perform_later(master_file_id)
         return
       end
     end
@@ -129,7 +129,7 @@ class GenerateCaptionsJob < ActiveJob::Base
       },
     })
     Rails.logger.info "Transcription job submitted: #{resp.inspect}"
-    GenerateCaptionsJob.perform_in(POLL_TIME, master_file_id)
+    GenerateCaptionsJob.set(wait: POLL_TIME).perform_later(master_file_id)
   end
 
   def get_media_uri master_file
