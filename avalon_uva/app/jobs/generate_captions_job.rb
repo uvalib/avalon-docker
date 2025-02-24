@@ -37,12 +37,17 @@ class GenerateCaptionsJob < ActiveJob::Base
         raise "No caption file found" if temp_uri.blank?
 
         # Create the SupplementalFile
-        caption_file = SupplementalFile.new( label: Settings.caption_default.name,
+        lang = Iso639[resp.transcription_job.language_code]
+        caption_file = SupplementalFile.new(
+          label: resp.transcription_job.language_code,
           tags: ['caption', 'machine_generated'],
-          language: Settings.caption_default.language
+          language: lang.nil? ? 'eng' : lang.alpha3_bibliographic,
         )
         begin
-          caption_file.file.attach(io: URI.open(temp_uri), filename: "#{master_file_id}-generated-eng.vtt", content_type: 'text/vtt')
+          caption_file.file.attach(io: URI.open(temp_uri),
+            filename: "#{master_file_id}-generated-#{resp.transcription_job.language_code}.vtt",
+            content_type: 'text/vtt'
+          )
         rescue StandardError, LoadError => e
           raise Avalon::SaveError, "Error attaching caption file: #{e}"
         end
@@ -50,7 +55,7 @@ class GenerateCaptionsJob < ActiveJob::Base
         # Checks adapted from app/controllers/supplemental_files_controller.rb
         # Raise errror if file wasn't attached
         raise Avalon::SaveError, "File could not be attached." unless caption_file.file.attached?
-        raise Avalon::SaveError, @supplemental_file.errors.full_messages unless caption_file.save
+        raise Avalon::SaveError, caption_file.errors.full_messages unless caption_file.save
 
         # Add the caption file to the master file
         master_file.supplemental_files += [caption_file]
@@ -121,8 +126,8 @@ class GenerateCaptionsJob < ActiveJob::Base
       },
       settings: {
       },
-      identify_language: true,
-      #identify_multiple_languages: false,
+      #identify_language: true,
+      identify_multiple_languages: true,
       subtitles: {
         formats: ["vtt"], # accepts vtt, srt
         output_start_index: 0,

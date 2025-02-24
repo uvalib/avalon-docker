@@ -87,6 +87,7 @@ gem 'wavefile', '~> 1.0.1'
 gem 'edtf', '>= 3.1.1'
 gem 'iconv', '~> 1.0.6'
 gem 'marc'
+gem 'iso639'
 
 # Jobs
 gem 'activejob-traffic_control'
