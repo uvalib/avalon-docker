@@ -37,9 +37,10 @@ class GenerateCaptionsJob < ActiveJob::Base
         raise "No caption file found" if temp_uri.blank?
 
         # Create the SupplementalFile
-        lang = Iso639[resp.transcription_job.language_code]
+        main_language = resp.transcription_job.language_codes.sort_by(&:duration_in_seconds).last
+        lang = Iso639[main_language.try(:language_code)]
         caption_file = SupplementalFile.new(
-          label: resp.transcription_job.language_code,
+          label: main_language.language_code,
           tags: ['caption', 'machine_generated'],
           language: lang.nil? ? 'eng' : lang.alpha3_bibliographic,
         )
