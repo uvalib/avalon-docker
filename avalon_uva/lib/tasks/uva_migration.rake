@@ -1,35 +1,36 @@
+# frozen_string_literal: true
+
 namespace :uva do
   namespace :migrate do
 
     require 'fileutils'
 
-    desc "Migrate streaming assets from Wowza to Nginx formats"
-    task :all_derivatives => :environment do
-
+    desc 'Migrate streaming assets from Wowza to Nginx formats'
+    task all_derivatives: :environment do
       derivative_count = Derivative.count
 
       puts "Checking and migrating #{derivative_count} Derivatives"
 
-      Derivative.find_each({},{batch_size: 10}) do |der|
+      Derivative.find_each({}, { batch_size: 10 }) do |der|
         migrate_stream(der)
       end
-      puts "Finished!"
+      puts 'Finished!'
     end
 
-    desc "Migrate one Derivative rake uva:migrate:one_derivative ID=xxxxxxx"
-    task :one_derivative => :environment do
+    desc 'Migrate one Derivative rake uva:migrate:one_derivative ID=xxxxxxx'
+    task one_derivative: :environment do
       if ENV['ID'].blank?
-        puts "Include a Derivative Id with this format: rake uva:migrate:one_derivative ID=xxxxxxx "
+        puts 'Include a Derivative Id with this format: rake uva:migrate:one_derivative ID=xxxxxxx '
         return
       end
       der = Derivative.find(ENV['ID'])
       migrate_stream(der)
-
     end
 
     OLD_STREAM_DIR = '/streamfiles' # base folder with files to migrate
     NEW_STREAM_DIR = Settings.encoding.derivative_bucket
-    def migrate_stream der
+
+    def migrate_stream(der)
       if der.absolute_location.begin_with?('s3://')
         # Skip already migrated files
         puts "Skipping already migrated: #{der.id}"
@@ -51,7 +52,7 @@ namespace :uva do
       success = false
       if FileLocator.exists?(new_path)
         # already exists but derivative locations still needs updating
-        puts "Derivative already copied."
+        puts 'Derivative already copied.'
         success = true
       elsif !FileLocator.exists?(der.absolute_location)
         puts "Derivative file does not exist at: #{der.absolute_location}"
@@ -59,11 +60,7 @@ namespace :uva do
         # copy to s3
         dest_object = FileLocator::S3File.new(new_path).object
         original_uri = Addressable::URI.parse(der.absolute_location)
-
-        if dest_object.upload_file(original_uri.path)
-          success = true
-        end
-
+        success = dest_object.upload_file(original_uri.path)
       end
 
       if success
@@ -71,7 +68,6 @@ namespace :uva do
         der.set_streaming_locations!
         der.save
         puts "Location updated for derivative #{der.id} - #{derivative_uuid}"
-
       else
         puts "S3 transfer failed for Derivative: #{der.id} - #{derivative_uuid}"
       end
@@ -79,23 +75,21 @@ namespace :uva do
 
     # A one time captions migration
     # Pretty much the same fix as avalon:migrate:caption_files
-    desc "Migrate captions" do
-      task :captions => :environment do
-        MasterFile.find_each do |mf|
-          if mf.has_captions?
-            if mf.captions.mime_type == "application/octet-stream" && mf.captions.original_name.ends_with?("vtt")
-              puts "fixed vtt mime for #{mf.id}"
-              mf.captions.mime_type = 'text/vtt'
-              mf.captions.save!
-            else
-              puts "captions correct for #{mf.id} - name: #{mf.captions.original_name} mime: #{mf.captions.mime_type}"
-            end
-            mf.captions.update_external_index
+    desc 'Migrate captions'
+    task captions: :environment do
+      MasterFile.find_each do |mf|
+        if mf.has_captions?
+          if mf.captions.mime_type == 'application/octet-stream' && mf.captions.original_name.ends_with?('vtt')
+            puts "fixed vtt mime for #{mf.id}"
+            mf.captions.mime_type = 'text/vtt'
+            mf.captions.save!
+          else
+            puts "captions correct for #{mf.id} - name: #{mf.captions.original_name} mime: #{mf.captions.mime_type}"
           end
+          mf.captions.update_external_index
         end
       end
     end
+
   end
-
-
 end

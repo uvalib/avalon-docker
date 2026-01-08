@@ -11,6 +11,8 @@
 #   CONDITIONS OF ANY KIND, either express or implied. See the License for the
 #   specific language governing permissions and limitations under the License.
 # ---  END LICENSE_HEADER BLOCK  ---
+#
+# frozen_string_literal: true
 
 module Avalon
   module About
@@ -18,22 +20,23 @@ module Avalon
       render_with 'generic_hash'
 
       validates_each :connected? do |record, attr, value|
-        record.errors.add attr, " == false" unless value
+        record.errors.add attr, ' == false' unless value
       end
 
-      def initialize(model=nil)
+      def initialize(model = nil)
         @model = model || ActiveRecord::Base.descendants.first
+        super()
       end
 
       def connected?
         @model.count
         @model.connected?
-      rescue
+      rescue StandardError
         false
       end
 
       def to_h
-        result = @model.connection_db_config.configuration_hash.reject { |k,v| [:username,:password].include?(k) }
+        result = @model.connection_db_config.configuration_hash.reject { |k, _| %i[username password].include?(k) }
         result['connected'] = connected?
         result
       end

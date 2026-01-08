@@ -27,7 +27,7 @@ class CatalogController < ApplicationController
 
   rescue_from Blacklight::Exceptions::InvalidRequest do |exception|
     Rails.logger.warn "Blacklight::Exceptions::InvalidRequest: #{exception.message}"
-    if exception.message.include? "too many nested clauses"
+    if exception.message.include? 'too many nested clauses'
       vg = user_session[:virtual_groups] || []
       Rails.logger.warn "Too many clauses caused by #{current_user.try :username}'s #{vg.count} groups. Truncating"
       if vg.present?

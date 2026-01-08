@@ -17,8 +17,8 @@ Unless required by applicable law or agreed to in writing, software distributed
 <% @page_title = t('media_objects.show.title', :media_object_title => (@media_object.title || @media_object.id), :application_name => application_name) %>
 
 <ol class="breadcrumb">
-    <li style="padding-bottom: 0px" class="breadcrumb-item"><%= link_to 'Home', main_app.root_path %></li>
-    <li style="padding-bottom: 0px" class="breadcrumb-item"><%= link_to 'Collections', main_app.collections_path %></li>
-    <li style="padding-bottom: 0px" class="breadcrumb-item"><%= link_to @media_object.collection.name, collection_path(@media_object.collection.id) %></li>
+    <li style="padding-bottom: 0" class="breadcrumb-item"><%= link_to 'Home', main_app.root_path %></li>
+    <li style="padding-bottom: 0" class="breadcrumb-item"><%= link_to 'Collections', main_app.collections_path %></li>
+    <li style="padding-bottom: 0" class="breadcrumb-item"><%= link_to @media_object.collection.name, collection_path(@media_object.collection.id) %></li>
 </ol>
 <%= render 'item_view' %>

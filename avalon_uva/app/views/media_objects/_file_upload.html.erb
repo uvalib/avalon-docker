@@ -60,16 +60,16 @@ Unless required by applicable law or agreed to in writing, software distributed
                     <% end %>
                   </span>
                   <% filename = section.title || File.basename(section.file_location.to_s) %>
-                  <span class="mediaobject-filename" id= <%= "truncated_#{section.id}" %> title="<%= filename %>">
+                  <span class="mediaobject-filename" id="<%= "truncated_#{section.id}" -%>" title="<%= filename -%>">
                     <%= truncate_center(filename, 30, 10) %>
                   </span>
-                  <span class="mediaobject-filename" id= <%= "full_#{section.id}" %> style="display: none;" title="<%= filename %>">
+                  <span class="mediaobject-filename" id="<%= "full_#{section.id}" -%>" style="display: none;" title="<%= filename -%>">
                     <%= filename %>
                   </span>
                   <span><%= number_to_human_size(section.file_size) %></span>
                   <% if filename.length > 30 %>
                     <span>
-                      <button class="btn btn-sm" id=<%= "expand_#{section.id}" %> onclick=<%="expandFilename('#{section.id}')"%>>
+                      <button class="btn btn-sm" id="<%= "expand_#{section.id}" -%>" onclick="<%= "expandFilename('#{section.id}')" -%>">
                         (Expand)
                       </button>
                     </span>
@@ -100,7 +100,7 @@ Unless required by applicable law or agreed to in writing, software distributed
                   <% end %>
                 </div>
               </div>
-              <div class="collapse" id="<%="collapseExample#{section.id}"%>">
+              <div class="collapse" id="<%= "collapseExample#{section.id}" -%>">
                 <%= form_with model: section, class: "master-file-form" do |form| %>
                   <div class="row">
                     <div class="col-sm-4">
@@ -153,9 +153,9 @@ Unless required by applicable law or agreed to in writing, software distributed
                     </div>
                   </div>
                 <% end %>
-                <%= form_with(url: '/glacier/masterfile', class: "glacier-request-form col-sm-12 text-right") do |f| %>
+                <%= form_with(url: '/glacier/masterfile', class: 'glacier-request-form col-sm-12 text-right') do |f| %>
                   <%= f.hidden_field :id, value: section.id %>
-                  <%= f.submit "Request Master File", class: "btn btn-sm btn-outline text-nowrap" %>
+                  <%= f.submit 'Request Master File', class: 'btn btn-sm btn-outline text-nowrap' %>
                   <div class="flash-message block text-left"></div>
                 <%end%>
                 <div class="section-files">
@@ -179,7 +179,7 @@ Unless required by applicable law or agreed to in writing, software distributed
           <p class="muted">Upload through the web (files must not exceed <%= number_to_human_size MasterFile::MAXIMUM_UPLOAD_SIZE %>)</p>
           <fieldset id='uploader'>
             <%= form_tag(master_files_path, :enctype=>"multipart/form-data", class: upload_form_classes, data: upload_form_data) do -%>
-            <input type="hidden" name="container_id" value="<%= @media_object.id %>" />
+            <input type="hidden" name="container_id" value="<%= @media_object.id -%>" />
             <input type="hidden" name="step" value="file_upload" />
 
             <%= hidden_field_tag("container_content_type", container_content_type, :id => "file_upload_content_type") if defined?(container_content_type) %>
@@ -334,13 +334,13 @@ Unless required by applicable law or agreed to in writing, software distributed
       if (flashMessage) {
         flashMessage.innerHTML = '';
         const msgObj = document.createElement('pre');
-        if(detail[0].response) {
+        if (detail[0].response) {
           try {
             let resp = JSON.parse(detail[0].response);
             const {master_file, validation_context, ...details } = resp;
             msgObj.textContent = JSON.stringify(details, null, 2);
 
-          }catch(error){
+          } catch(error) {
             msgObj.textContent = detail[0];
           }
         } else {

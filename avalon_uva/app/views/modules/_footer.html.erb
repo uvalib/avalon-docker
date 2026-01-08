@@ -1,13 +1,13 @@
-<uvalib-footer class="<%= "homepage-footer" if current_page?(main_app.root_path) %>">
+<uvalib-footer class="<%= 'homepage-footer' if current_page?(main_app.root_path) -%>">
   <ul>
     <li class="footer-logo">
-      <%= image_tag "AvalonMediaSystem_Logo_A.png", alt: "Avalon Media System - #{t(:release_label)} #{Avalon::VERSION}" %>
-    <li><a href="http://www.avalonmediasystem.org">Avalon Media System Project Website</a> </li>
-    <li><%= link_to "Contact Us", main_app.comments_path %></li>
+      <%= image_tag 'AvalonMediaSystem_Logo_A.png', alt: "Avalon Media System - #{t(:release_label)} #{Avalon::VERSION}" %>
+    <li><a href="https://www.avalonmediasystem.org">Avalon Media System Project Website</a> </li>
+    <li><%= link_to 'Contact Us', main_app.comments_path %></li>
   </ul>
   <div class="release">
-    <%=release_text%>
-    <%= git_commit_info(" (%s %s [%s])") if Rails.env == 'development' %>
+    <%= release_text %>
+    <%= git_commit_info(' (%s %s [%s])') if Rails.env == 'development' %>
   </div>
 </uvalib-footer>
 <uvalib-analytics matomoId="42"><noscript><p><img src="https://analytics.lib.virginia.edu/matomo.php?idsite=42&rec=1" style="border:0;" alt="" /></p></noscript></uvalib-analytics>

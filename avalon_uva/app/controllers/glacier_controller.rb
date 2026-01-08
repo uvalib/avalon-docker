@@ -1,15 +1,15 @@
+# frozen_string_literal: true
+
 class GlacierController < ApplicationController
   before_action :set_master_file
 
   def request_masterfile
 
-    authorize! :update, @master_file, message: "You do not have sufficient privileges"
+    authorize! :update, @master_file, message: 'You do not have sufficient privileges'
 
     if current_user && current_ability.is_administrator?
       gr = GlacierRequest.new(master_file: @master_file, email: current_user.email)
-      if gr.valid?
-        gr.send_request
-      end
+      gr.send_request if gr.valid?
     else
       render json: gr, status: :unauthorized
       return

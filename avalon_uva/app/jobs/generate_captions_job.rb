@@ -1,15 +1,17 @@
+# frozen_string_literal: true
+
 require 'aws-sdk-transcribeservice'
+
 class GenerateCaptionsJob < ActiveJob::Base
   queue_as :captions
   POLL_TIME = 1.minute
-
 
   def perform(master_file_id)
     master_file = MasterFile.find(master_file_id)
     return if master_file.nil?
 
     # Check for existing generated captions
-    if master_file.supplemental_files(tag: ['caption', 'machine_generated']).present?
+    if master_file.supplemental_files(tag: %w[caption machine_generated]).present?
       Rails.logger.info "Captions already generated for #{master_file_id}"
       return
     end
@@ -17,31 +19,31 @@ class GenerateCaptionsJob < ActiveJob::Base
     job_name = "#{master_file_id}-captions"
 
     # Check for existing transcription job
-    client = Aws::TranscribeService::Client.new()
+    client = Aws::TranscribeService::Client.new
     begin
       resp = client.get_transcription_job({
         transcription_job_name: job_name, # required
       })
-    rescue Aws::TranscribeService::Errors::BadRequestException => e
+    rescue Aws::TranscribeService::Errors::BadRequestException
       # job not found
       Rails.logger.info "No existing transcription job for #{job_name}"
     end
 
-    #Status is one of "QUEUED", "IN_PROGRESS", "FAILED", "COMPLETED"
+    # Status is one of "QUEUED", "IN_PROGRESS", "FAILED", "COMPLETED"
     if resp.present?
       Rails.logger.info "Transcription job found\n#{resp.inspect}"
       case resp.transcription_job.transcription_job_status
       when 'COMPLETED'
 
         temp_uri = resp.transcription_job.subtitles.subtitle_file_uris.first
-        raise "No caption file found" if temp_uri.blank?
+        raise 'No caption file found' if temp_uri.blank?
 
         # Create the SupplementalFile
         main_language = resp.transcription_job.language_codes.sort_by(&:duration_in_seconds).last
         lang = Iso639[main_language.try(:language_code)]
         caption_file = SupplementalFile.new(
           label: main_language.language_code,
-          tags: ['caption', 'machine_generated'],
+          tags: %w[caption machine_generated],
           language: lang.nil? ? 'eng' : lang.alpha3_bibliographic,
         )
         begin
@@ -54,8 +56,8 @@ class GenerateCaptionsJob < ActiveJob::Base
         end
 
         # Checks adapted from app/controllers/supplemental_files_controller.rb
-        # Raise errror if file wasn't attached
-        raise Avalon::SaveError, "File could not be attached." unless caption_file.file.attached?
+        # Raise error if file wasn't attached
+        raise Avalon::SaveError, 'File could not be attached.' unless caption_file.file.attached?
         raise Avalon::SaveError, caption_file.errors.full_messages unless caption_file.save
 
         # Add the caption file to the master file
@@ -82,9 +84,9 @@ class GenerateCaptionsJob < ActiveJob::Base
         # log
         Rails.logger.error(resp.transcription_job.failure_reason)
         return
-      when "QUEUED", "IN_PROGRESS"
+      when 'QUEUED', 'IN_PROGRESS'
         # retry later
-        Rails.logger.info("Transcription job still in progress")
+        Rails.logger.info('Transcription job still in progress')
         GenerateCaptionsJob.set(wait: POLL_TIME).perform_later(master_file_id)
         return
       end
@@ -92,10 +94,9 @@ class GenerateCaptionsJob < ActiveJob::Base
 
     # No existing job, start transcribing
 
-
     media_uri = get_media_uri(master_file)
     puts media_uri
-    to_transcribe_uri = ""
+    to_transcribe_uri = ''
 
     if media_uri.nil?
       raise 'No media file found'
@@ -105,13 +106,11 @@ class GenerateCaptionsJob < ActiveJob::Base
       dest_object = FileLocator::S3File.new(tmp_location).object
       if dest_object.exists?
         to_transcribe_uri = tmp_location
+      elsif dest_object.upload_file(media_uri.path)
+        Rails.logger.info("Uploaded #{media_uri.path} to #{tmp_location}")
+        to_transcribe_uri = tmp_location
       else
-        if dest_object.upload_file(media_uri.path)
-          Rails.logger.info("Uploaded #{media_uri.path} to #{tmp_location}")
-          to_transcribe_uri = tmp_location
-        else
-          raise "Could not upload #{media_uri.path} to #{tmp_location}"
-        end
+        raise "Could not upload #{media_uri.path} to #{tmp_location}"
       end
 
     elsif media_uri.scheme == 's3'
@@ -130,7 +129,7 @@ class GenerateCaptionsJob < ActiveJob::Base
       #identify_language: true,
       identify_multiple_languages: true,
       subtitles: {
-        formats: ["vtt"], # accepts vtt, srt
+        formats: ['vtt'], # accepts vtt, srt
         output_start_index: 0,
       },
     })
@@ -138,10 +137,9 @@ class GenerateCaptionsJob < ActiveJob::Base
     GenerateCaptionsJob.set(wait: POLL_TIME).perform_later(master_file_id)
   end
 
-  def get_media_uri master_file
+  def get_media_uri(master_file)
     # Reusing uri selection from waveform_job.rb
     wfj = WaveformJob.new
     wfj.send(:derivative_file_uri, master_file) || wfj.send(:file_uri, master_file) || wfj.send(:playlist_url, master_file)
-
   end
 end

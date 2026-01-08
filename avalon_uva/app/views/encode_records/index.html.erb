@@ -21,7 +21,7 @@ Unless required by applicable law or agreed to in writing, software distributed
   <table id="encode-records"
          class="table table-striped"
          data-turbolinks="false"
-         data-progress-url="<%= progress_encode_records_path(format: :json) %>">
+         data-progress-url="<%= progress_encode_records_path(format: :json) -%>">
     <thead>
       <tr>
         <th>Status</th>
@@ -56,7 +56,7 @@ Unless required by applicable law or agreed to in writing, software distributed
             toggleCSS($(bar), encode_data['status'].toLowerCase())
             $(bar).attr('aria-valuenow', encode_data['progress'])
             $(bar).attr('style', 'width: ' + encode_data['progress'] + '%')
-            stop = stop && (encode_data['progress'] == 100)
+            stop = stop && (encode_data['progress'] === 100)
           });
           if (!stop) {
             encodeProgressTimeout = setTimeout(update_encode_progress, 10000);

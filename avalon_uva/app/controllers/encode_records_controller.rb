@@ -84,7 +84,6 @@ class EncodeRecordsController < ApplicationController
           view_context.link_to(encode_presenter.media_object_id, encode_presenter.media_object_url),
           encode_presenter.created_at.strftime('%Y-%m-%d %H:%M:%S'),
           encode_presenter.display_title
-
         ]
       end
     }

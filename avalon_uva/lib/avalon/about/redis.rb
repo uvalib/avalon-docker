@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Avalon
   module About
     class Redis < AboutPage::Configuration::Node
@@ -9,11 +11,12 @@ module Avalon
 
       def initialize(redis)
         @redis = redis
+        super()
       end
 
       def status
-        @redis.ping == "PONG"
-      rescue
+        @redis.ping == 'PONG'
+      rescue StandardError
         false
       end
 

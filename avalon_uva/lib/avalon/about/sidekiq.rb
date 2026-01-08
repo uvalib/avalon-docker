@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Avalon
   module About
     class Sidekiq < AboutPage::Configuration::Node
@@ -9,11 +11,12 @@ module Avalon
 
       def initialize(numProcesses: 1)
         @process_count = numProcesses
+        super()
       end
 
       def status
         ::Sidekiq::ProcessSet.new.size == @process_count
-      rescue
+      rescue StandardError
         false
       end
 

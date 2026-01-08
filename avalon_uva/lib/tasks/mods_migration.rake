@@ -1,19 +1,22 @@
+# frozen_string_literal: true
+
 namespace :uva do
   namespace :migrate do
-    desc "Convert ALL custom mods fields"
-    task :all_mods_roles => :environment do
-      puts "Migrating all custom Mods roles in 5 seconds..."
+
+    desc 'Convert ALL custom mods fields'
+    task all_mods_roles: :environment do
+      puts 'Migrating all custom Mods roles in 5 seconds...'
       sleep(5)
 
-      MediaObject.find_each({},{batch_size:5}) do |mo|
+      MediaObject.find_each({}, { batch_size: 5 }) do |mo|
         convert_custom_name_roles(mo)
       end
     end
 
-    desc "Convert one custom mods field"
-    task :one_mods_roles => :environment do
+    desc 'Convert one custom mods field'
+    task one_mods_roles: :environment do
       if ENV['ID'].blank?
-        puts "Include a Media Object Id with this format: rake uva:migrate:one_mods_roles ID=xxxxxxx "
+        puts 'Include a Media Object Id with this format: rake uva:migrate:one_mods_roles ID=xxxxxxx '
         return
       end
 
@@ -24,10 +27,9 @@ namespace :uva do
       convert_custom_name_roles(mo)
     end
 
-
     private
-    def convert_custom_name_roles(mo)
 
+    def convert_custom_name_roles(mo)
       puts "#{mo.id} Processing"
       doc = mo.descMetadata.ng_xml
       modified = false
@@ -36,7 +38,7 @@ namespace :uva do
       doc.css('mods > name').each do |name|
         role_name = name.css('role roleTerm[@type="text"]').text
 
-        unless ['Contributor', 'Creator'].include?(role_name)
+        unless %w[Contributor Creator].include?(role_name)
           namePart = name.at_css('namePart')
           if namePart.text.end_with?("(#{role_name})")
             puts "Already migrated: #{namePart.text}"
@@ -51,7 +53,7 @@ namespace :uva do
         end
       end
 
-      if !modified
+      unless modified
         puts "#{mo.id} No changes"
         return
       end
@@ -69,5 +71,6 @@ namespace :uva do
       puts "ERROR: #{e}"
       puts e.backtrace
     end
+
   end
 end

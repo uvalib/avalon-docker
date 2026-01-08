@@ -1,9 +1,13 @@
+# frozen_string_literal: true
+
 require 'omniauth'
 require 'omniauth/strategy'
-module OmniAuth::Strategies
-  class Shibboleth
-    include OmniAuth::Strategy
 
-    # Now a placeholder
+module OmniAuth
+  module Strategies
+    class Shibboleth
+      include OmniAuth::Strategy
+      # Now a placeholder
+    end
   end
 end

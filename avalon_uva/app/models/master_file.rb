@@ -414,9 +414,7 @@ class MasterFile < ActiveFedora::Base
   end
 
   def generate_captions
-    if !has_captions?
-      GenerateCaptionsJob.perform_later(id)
-    end
+    GenerateCaptionsJob.perform_later(id) unless has_captions?
   end
 
   def absolute_location

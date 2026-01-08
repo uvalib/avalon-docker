@@ -17,7 +17,7 @@ let uvalib_analytics_setup = ()=>{
                 bubbles: true
             }));
         }
-    }
+    };
 
     // Load up the header first as it most likely is holding up viewable rendering
     loadModule('uvalib-header.js').then(()=>{
@@ -27,7 +27,7 @@ let uvalib_analytics_setup = ()=>{
             // 1 is the id for Status (logged in or not)
             // 2 is the id for Affiliation (virginia.edu)
             let status = document.querySelector('.log-in-out').textContent.includes('Sign out');
-            let affiliation = status? document.querySelector('.log-in-out').textContent.replace(/.*\@(.*) \|.*/,'$1').trim(): "anonymous";
+            let affiliation = status ? document.querySelector('.log-in-out').textContent.replace(/.*@(.*) \|.*/, '$1').trim() : "anonymous";
             console.info(`status: ${status}`);
             console.info(`affiliation: ${affiliation}`);
             document.querySelector('uvalib-analytics').setAttribute('variables',JSON.stringify({
@@ -38,9 +38,9 @@ let uvalib_analytics_setup = ()=>{
                 // Analytics loaded, lets track some events
                 let videoPlayer = document.querySelector('mediaelementwrapper');
                 if (videoPlayer) {
-                    let title = document.title.replace(/\- Avalon.*/,"").trim();
+                    let title = document.title.replace(/- Avalon.*/, "").trim();
                     // Video timeupdate - The playing position has changed (like when the user fast forwards to a different point in the media)
-                    // ** Too noisy, perhaps renable debounced
+                    // ** Too noisy, perhaps re-enable debounced
                     // videoPlayer.addEventListener('timeupdate',()=>{ trackEvent(['media','timeupdate',title,affiliation]); });
                     // Video seeked - The seeking attribute is set to false indicating that seeking has ended
                     videoPlayer.addEventListener('seeked',()=>{ trackEvent(['media','seeked',title,affiliation]); })
@@ -75,4 +75,6 @@ let uvalib_analytics_setup = ()=>{
             });
         });
     });
-}; uvalib_analytics_setup();
+};
+
+uvalib_analytics_setup();

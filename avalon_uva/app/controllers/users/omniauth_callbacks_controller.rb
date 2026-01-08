@@ -18,17 +18,18 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   skip_before_action :verify_authenticity_token
 
   def passthru
-    #begin
-    #  render "modules/#{params[:provider]}_auth_form"
-    #rescue ActionView::MissingTemplate
-    #  redirect_to new_user_session_path, flash: { alert: I18n.t('devise.failure.invalid') }
+    # begin
+    #   render "modules/#{params[:provider]}_auth_form"
+    # rescue ActionView::MissingTemplate
+    #   redirect_to new_user_session_path, flash: { alert: I18n.t('devise.failure.invalid') }
 
-    provider = Avalon::Authentication::Providers.find {|p| p[:provider] == :shibboleth }
-    if provider && callback = provider.dig(:params, :callback_path)
+    provider = Avalon::Authentication::Providers.find { |p| p[:provider] == :shibboleth }
+    callback = provider&.dig(:params, :callback_path)
+    if callback
       redirect_to callback
     else
-      Rails.logger.error "Shibboleth requires a callback path."
-      raise "Shibboleth error"
+      Rails.logger.error 'Shibboleth requires a callback path.'
+      raise 'Shibboleth error'
     end
   end
 
@@ -44,12 +45,13 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       new_user_session_path(scope)
     end
   end
+
   def shibboleth
     shibboleth_callback_phase
     @user = User.find_or_create_by_username_or_email(@uid, @uid, 'shibboleth')
     if @user.persisted?
-      flash[:success] = I18n.t "devise.omniauth_callbacks.success", :kind => :shibboleth
-      sign_in @user, :event => :authentication
+      flash[:success] = I18n.t 'devise.omniauth_callbacks.success', kind: :shibboleth
+      sign_in @user, event: :authentication
       user_session[:virtual_groups] = @user.ldap_groups
       user_session[:full_login] = true
       user_session[:virtual_groups] += @affiliations
@@ -67,40 +69,35 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   def shibboleth_callback_phase
     eppn = request.env['HTTP_EPPN']
     affiliation = request.env['HTTP_AFFILIATION']
-    if (eppn.to_s.include? '@')
-        @uid = eppn;
-    elsif (affiliation)
-      parseAffiliationString(affiliation).each do | address |
-          if address.start_with? 'member@'
-            @uid = address;
-          end
+    if eppn.to_s.include?('@')
+      @uid = eppn
+    elsif affiliation
+      parseAffiliationString(affiliation).each do |address|
+        @uid = address if address.start_with?('member@')
       end
-      if (@uid.nil?)
-        @uid = "unknown@unknown"
-      end
+      @uid ||= 'unknown@unknown'
     else
       # this is an error... the apache module and rewrite haven't been properly setup.
-      raise "missing shibboleth header"
+      raise 'missing shibboleth header'
     end
 
-    @affiliations = (parseAffiliationString(request.env['HTTP_AFFILIATION']) | getInferredAffiliations() | parseMemberString(request.env['HTTP_MEMBER']))
+    @affiliations = (parseAffiliationString(request.env['HTTP_AFFILIATION']) | getInferredAffiliations | parseMemberString(request.env['HTTP_MEMBER']))
   end
 
   def parseAffiliationString(affiliation)
     return [] unless affiliation.respond_to? :split
-      affiliation.split(/;/)
+    affiliation.split(';')
   end
 
   def parseMemberString(members)
     return [] unless members.respond_to? :split
-    members.split(/;/)
+    members.split(';')
   end
 
-  def getInferredAffiliations()
+  def getInferredAffiliations
     return [] unless @uid.respond_to? :gsub
-    [ @uid.gsub(/.+@/, "member@") ]
+    [@uid.gsub(/.+@/, 'member@')]
   end
-
 
   def action_missing(sym, *args, &block)
     logger.debug "Attempting to find user with #{sym.to_s} strategy"
