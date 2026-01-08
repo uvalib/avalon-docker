@@ -1,4 +1,4 @@
-# Copyright 2011-2024, The Trustees of Indiana University and Northwestern
+# Copyright 2011-2025, The Trustees of Indiana University and Northwestern
 #   University.  Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #
@@ -15,6 +15,7 @@
 require 'fileutils'
 require 'hooks'
 require 'open-uri'
+require 'avalon/ffprobe'
 require 'avalon/file_resolver'
 require 'avalon/m3u8_reader'
 
@@ -30,7 +31,8 @@ class MasterFile < ActiveFedora::Base
   include MigrationTarget
   include MasterFileBehavior
   include MasterFileIntercom
-  include SupplementalFileBehavior
+  include SupplementalFileReadBehavior
+  include SupplementalFileWriteBehavior
 
   belongs_to :media_object, class_name: 'MediaObject', predicate: ActiveFedora::RDF::Fcrepo::RelsExt.isPartOf
   has_many :derivatives, class_name: 'Derivative', predicate: ActiveFedora::RDF::Fcrepo::RelsExt.isDerivationOf, dependent: :destroy
@@ -56,6 +58,9 @@ class MasterFile < ActiveFedora::Base
 
   property :title, predicate: ::RDF::Vocab::EBUCore.title, multiple: false do |index|
     index.as :stored_searchable
+  end
+  property :original_filename, predicate: Avalon::RDFVocab::MasterFile.originalFileName, multiple: false do |index|
+    index.as :stored_sortable
   end
   property :file_location, predicate: Avalon::RDFVocab::EBUCore.locator, multiple: false do |index|
     index.as :stored_sortable
@@ -178,12 +183,8 @@ class MasterFile < ActiveFedora::Base
 
   after_processing :post_processing_file_management
 
-  # First and simplest test - make sure that the uploaded file does not exceed the
-  # limits of the system. For now this is hard coded but should probably eventually
-  # be set up in a configuration file somewhere
-  #
-  # 250 MB is the file limit for now
-  MAXIMUM_UPLOAD_SIZE = Settings.max_upload_size || 2.gigabytes
+  # Make sure that the uploaded file does not exceed the limits of the system
+  MAXIMUM_UPLOAD_SIZE = Settings.max_upload_size
 
   WORKFLOWS = ['fullaudio', 'avalon', 'pass_through', 'avalon-skip-transcoding', 'avalon-skip-transcoding-audio'].freeze
   AUDIO_TYPES = ["audio/vnd.wave", "audio/mpeg", "audio/mp3", "audio/mp4", "audio/wav", "audio/x-wav"]
@@ -212,13 +213,17 @@ class MasterFile < ActiveFedora::Base
         self.file_location = file.to_s
         self.file_size = FileLocator::S3File.new(file).object.size
       else
-        self.file_location = file.to_s
-        self.file_size = file_size
-        self.title = file_name
+        local_file = FileLocator.new(file, filename: file_name, auth_header: auth_header).local_location
+        saveOriginal(File.open(local_file), file_name, dropbox_dir)
+        # The auth header is only needed for retrieving the file on initial download.
+        # Leaving it in place to be passed on can cause issues with the S3 related
+        # file move actions, so we set to nil after use to prevent that.
+        auth_header = nil
       end
     else #Batch
       saveOriginal(file, File.basename(file.path), dropbox_dir)
     end
+    self.original_filename = File.basename(file_name) unless (file.is_a?(Hash) || file_name.nil?)
 
     @auth_header = auth_header
     reloadTechnicalMetadata!
@@ -241,17 +246,23 @@ class MasterFile < ActiveFedora::Base
 
   # This requires the MasterFile having an actual id
   def media_object=(mo)
+    self.save!(validate: false) unless self.persisted?
+
     # Removes existing association
     if self.media_object.present?
-      self.media_object.master_files = self.media_object.master_files.to_a.reject { |mf| mf.id == self.id }
-      self.media_object.ordered_master_files = self.media_object.ordered_master_files.to_a.reject { |mf| mf.id == self.id }
-      self.media_object.save
+      self.media_object.section_ids -= [self.id]
+      self.media_object.save(validate: false)
     end
 
     self._media_object=(mo)
+    self.save!(validate: false)
+
     unless self.media_object.nil?
-      self.media_object.ordered_master_files += [self]
-      self.media_object.save
+      self.media_object.section_ids += [self.id]
+      self.media_object.save(validate: false)
+      # Need to reload here because somehow a cached copy of media_object is saved in memory
+      # which lacks the updated section_ids and master_file_ids just set and persisted above
+      self.media_object.reload
     end
   end
 
@@ -304,7 +315,16 @@ class MasterFile < ActiveFedora::Base
     # is stored as an integer string
     self.duration = encode.input.duration.to_i.to_s if encode.input.duration.present?
 
-    outputs = Array(encode.output).collect do |output|
+    # Input videos that are in portrait orientation can have metadata showing landscape orientation
+    # with a rotation value. This can cause the aspect ratio on the master file to be incorrect.
+    # We can get the proper aspect ratio from the transcoded files, so we set the master file off the
+    # encode output.
+    if is_video?
+      high_output = Array(encode.output).select { |out| out.label&.include?("high") }.first
+      self.display_aspect_ratio = (high_output.width.to_f / high_output.height.to_f).to_s
+    end
+
+    outputs = Array(encode.output).reject { |output| output.format == "vtt" }.collect do |output|
       {
         id: output.id,
         label: output.label,
@@ -321,6 +341,13 @@ class MasterFile < ActiveFedora::Base
       }
     end
     update_derivatives(outputs)
+
+    supplemental_file_outputs = Array(encode.output).select { |out| out.format == 'vtt' }
+    supplemental_file_ids = supplemental_file_outputs.collect { |sf| sf.id }.compact
+    add_supplemental_files(supplemental_file_ids) if supplemental_file_ids.present?
+
+    save
+
     run_hook :after_transcoding
   end
 
@@ -334,8 +361,10 @@ class MasterFile < ActiveFedora::Base
         existing.delete
       end
     end
+  end
 
-    save
+  def add_supplemental_files(ids)
+    self.supplemental_files += ids.collect { |id| GlobalID::Locator.locate(id) }
   end
 
   alias_method :'_poster_offset', :'poster_offset'
@@ -498,6 +527,10 @@ class MasterFile < ActiveFedora::Base
     !captions.empty? || !supplemental_file_captions.empty?
   end
 
+  def has_transcripts?
+    supplemental_file_transcripts.present?
+  end
+
   def has_waveform?
     !waveform.empty?
   end
@@ -514,6 +547,7 @@ class MasterFile < ActiveFedora::Base
     super.tap do |solr_doc|
       solr_doc['file_size_ltsi'] = file_size if file_size.present?
       solr_doc['has_captions?_bs'] = has_captions?
+      solr_doc['has_transcripts?_bs'] = has_transcripts?
       solr_doc['has_waveform?_bs'] = has_waveform?
       solr_doc['has_poster?_bs'] = has_poster?
       solr_doc['has_thumbnail?_bs'] = has_thumbnail?
@@ -547,11 +581,18 @@ class MasterFile < ActiveFedora::Base
     end
   end
 
-  protected
-
-  def mediainfo
-    Mediainfo.new(FileLocator.new(file_location).location, headers: @auth_header)
+  def stop_processing!
+    # Stops all processing
+    ActiveEncodeJobs::CancelEncodeJob.perform_later(workflow_id, id) if workflow_id.present? && !finished_processing?
   end
+
+  # Delete does not trigger callbacks so override method to ensure deletion of child supplemental files
+  def delete
+    destroy_supplemental_files
+    super
+  end
+
+  protected
 
   def find_frame_source(options={})
     options[:offset] ||= 2000
@@ -574,7 +615,7 @@ class MasterFile < ActiveFedora::Base
   end
 
   def create_frame_source_hls_temp_file(offset)
-    playlist_url = self.stream_details[:stream_hls].find { |d| d[:quality] == 'high' }[:url]
+    playlist_url = self.hls_streams.find { |d| d[:quality] == 'high' || d[:quality] == 'medium' || d[:quality] == 'low' }[:url]
     secure_url = SecurityHandler.secure_url(playlist_url, target: self.id)
     playlist = Avalon::M3U8Reader.read(secure_url)
     details = playlist.at(offset)
@@ -582,7 +623,7 @@ class MasterFile < ActiveFedora::Base
     # Fixes https://github.com/avalonmediasystem/avalon/issues/3474
     target_location = File.basename(details[:location]).split('?')[0]
     target = File.join(Dir.tmpdir, target_location)
-    File.open(target,'wb') { |f| URI.open(details[:location]) { |io| f.write(io.read) } }
+    File.open(target,'wb') { |f| URI.open(details[:location], "Referer" => Rails.application.routes.url_helpers.root_url) { |io| f.write(io.read) } }
     return target, details[:offset]
   end
 
@@ -663,6 +704,7 @@ class MasterFile < ActiveFedora::Base
   def saveOriginal(file, original_name = nil, dropbox_dir = media_object.collection.dropbox_absolute_path)
     realpath = File.realpath(file.path)
 
+    self.file_size = file.size
     if original_name.present?
       # If we have a temp name from an upload, rename to the original name supplied by the user
       unless File.basename(realpath) == original_name
@@ -677,14 +719,15 @@ class MasterFile < ActiveFedora::Base
           num += 1
         end
         Rails.logger.info("path: #{path}\nrealpath: #{realpath}\noriginal_name: #{original_name}\ndropbox_dir: #{dropbox_dir}")
-        FileUtils.move(realpath, path)
+        old_locator = FileLocator.new(realpath)
+        new_locator = FileLocator.new(path)
+        FileMover.move(old_locator, new_locator)
         realpath = path
       end
 
       create_working_file!(realpath)
     end
     self.file_location = realpath
-    self.file_size = file.size.to_s
   ensure
     file.close
   end
@@ -702,6 +745,7 @@ class MasterFile < ActiveFedora::Base
       next unless usable_files.has_key?(quality)
       self.file_location = File.realpath(usable_files[quality])
       self.file_size = usable_files[quality].size.to_s
+      self.original_filename = File.basename(File.realpath(usable_files[quality]))
       break
     end
   ensure
@@ -709,33 +753,33 @@ class MasterFile < ActiveFedora::Base
   end
 
   def reloadTechnicalMetadata!
-    #Reset mediainfo
-    @mediainfo = mediainfo
+    # Reset ffprobe
+    @ffprobe = Avalon::FFprobe.new(FileLocator.new(file_location, { auth_header: @auth_header }))
 
     # Formats like MP4 can be caught as both audio and video
     # so the case statement flows in the preferred order
-    self.file_format = if @mediainfo.video?
+    self.file_format = if @ffprobe.video?
                          'Moving image'
-                       elsif @mediainfo.audio?
+                       elsif @ffprobe.audio?
                          'Sound'
                        else
                          'Unknown'
                        end
 
     self.duration = begin
-      @mediainfo.duration.to_s
+      @ffprobe.duration.to_s
     rescue
       nil
     end
 
-    unless @mediainfo.video.streams.empty?
-      display_aspect_ratio_s = @mediainfo.video.streams.first.display_aspect_ratio
+    unless !@ffprobe.video?
+      display_aspect_ratio_s = @ffprobe.display_aspect_ratio
       if ':'.in? display_aspect_ratio_s
         self.display_aspect_ratio = display_aspect_ratio_s.split(/:/).collect(&:to_f).reduce(:/).to_s
       else
         self.display_aspect_ratio = display_aspect_ratio_s
       end
-      self.original_frame_size = @mediainfo.video.streams.first.frame_size
+      self.original_frame_size = @ffprobe.original_frame_size
     end
   end
 
@@ -769,15 +813,9 @@ class MasterFile < ActiveFedora::Base
     klass if klass&.ancestors&.include?(ActiveEncode::Base)
   end
 
-  def stop_processing!
-    # Stops all processing
-    ActiveEncodeJobs::CancelEncodeJob.perform_later(workflow_id, id) if workflow_id.present? && finished_processing?
-  end
-
   def update_parent!
     return unless media_object.present?
-    media_object.master_files.delete(self)
-    media_object.ordered_master_files.delete(self)
+    media_object.section_ids -= [self.id]
     media_object.set_media_types!
     media_object.set_duration!
     if !media_object.save

@@ -6,7 +6,7 @@ Rails.application.routes.draw do
   concern :searchable, Blacklight::Routes::Searchable.new
   concern :exportable, Blacklight::Routes::Exportable.new
 
-  resource :catalog, only: [:index], as: 'catalog', path: '/catalog', controller: 'catalog' do
+  resource :catalog, only: [], as: 'catalog', path: '/catalog', controller: 'catalog' do
     concerns :searchable
   end
 
@@ -139,7 +139,9 @@ Rails.application.routes.draw do
     end
 
     # Supplemental Files
-    resources :supplemental_files, except: [:new, :index, :edit]
+    resources :supplemental_files, except: [:new, :index, :edit] do
+      get :index, constraints: { format: 'json' }, on: :collection
+    end
   end
 
   resources :master_files, except: [:new, :index] do
@@ -160,6 +162,11 @@ Rails.application.routes.draw do
       delete 'structure', to: 'master_files#delete_structure', constraints: { format: 'json' }
       post 'move'
       get 'transcript/:t_id', to: 'master_files#transcript'
+      get :search
+
+      if Settings.derivative.allow_download
+        get :download_derivative
+      end
     end
 
     # Supplemental Files
@@ -168,6 +175,7 @@ Rails.application.routes.draw do
         get 'captions'
         get 'transcripts', :to => redirect('/master_files/%{master_file_id}/supplemental_files/%{id}')
       end
+      get :index, constraints: { format: 'json' }, on: :collection
     end
   end
 
@@ -241,7 +249,7 @@ Rails.application.routes.draw do
   get '/jobs(.:format)', to: redirect('/')
 
   scope :persona, as: 'persona' do
-    resources :users, only: [:paged_index], controller: 'samvera/persona/users' do
+    resources :users, only: [], controller: 'samvera/persona/users' do
       collection do
         post 'paged_index'
       end

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2024, The Trustees of Indiana University and Northwestern
+ * Copyright 2011-2025, The Trustees of Indiana University and Northwestern
  *   University.  Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
  *
@@ -35,8 +35,18 @@ $secondary: $blue-alt-darkest;
 $dark: $brand-orange-dark;
 
 // Secondary colors
+//$yellow: '_color-vars.scss'
 $orange: $brand-orange;
+//$white: '_color-vars.scss'
 $blueGreen: $teal-darker;
+
+// Colors not from the Styleguide
+$greenBG: $green-lightest;
+$gray: $grey;
+$lightgray: $grey-light;
+//$red: '_color-vars.scss'
+$blue: $brand-blue;
+$lightblue: $brand-blue-light;
 
 // Generated palate colors from http://colormind.io/ for Avalon style guide
 // Add new HEX values below to match your organization's flavor of info/success/warning/danger
@@ -44,13 +54,6 @@ $info: map-get($alert-background-colors, "regional-alert-informational");
 $success: map-get($alert-background-colors, "alert-level-3");
 $warning: map-get($alert-background-colors, "alert-level-2");
 $danger: map-get($alert-background-colors, "alert-level-1");
-
-// Colors not from the Styleguide
-$greenBG: $green-lightest;
-$gray: $grey;
-$lightgray: $grey-light;
-$blue: $brand-blue;
-$lightblue: $brand-blue-light;
 
 /**
   * Bootstrap variable overrides
@@ -80,6 +83,9 @@ $link-color: $secondary;
 $link-hover-color: $primary;
 
 /* Alerts */
+//$alert-bg-level: 0;
+//$alert-border-level: 1;
+//$alert-color-level: -10;
 $alert-success-bg: $success;
 $alert-success-text: $brand-blue;
 $alert-success-border: $success;
@@ -132,7 +138,6 @@ $btn-xs-font-size: 0.85rem;
 $btn-xs-height: 1.65rem;
 $btn-xs-padding: 0.15rem 0.5rem;
 
-
 /* Pagination */
 $pagination-color: $link-color;
 $pagination-bg: $white;
@@ -149,3 +154,32 @@ $pagination-disabled-border-color: $gray;
 
 $nav-tabs-active-link-hover-color: $dark;
 $input-color: $dark;
+
+/* Style fixes */
+
+.header-wrapper .header-logo a.block {
+    width: fit-content;
+}
+
+/* Needed to make the display consistent with the previous version */
+
+.bg-primary {
+    background-color: $primary;
+}
+
+.btn-primary {
+    color: $white;
+    background-color: $primary;
+    border-color: $primary;
+}
+
+.btn-info {
+    background-color: $teal-lightest;
+    border-color: $teal-lightest;
+}
+
+.btn-info:hover {
+    color: #212529;
+    background-color: #a8eaee;
+    border-color: #9ee8ec;
+}

@@ -1,5 +1,5 @@
 # avalon-docker
-The project contains the Dockerfiles for all the necessary components of [Avalon Media System](http://github.com/avalonmediasystem/avalon). For developing with Avalon, the docker-compose script in [Avalon](http://github.com/avalonmediasystem/avalon) and [Avalon Bundle](http://github.com/samvera-labs/avalon-bundle) are recommended.
+The project contains the Dockerfiles for all the necessary components of [Avalon Media System](https://github.com/avalonmediasystem/avalon). For developing with Avalon, the docker-compose script in [Avalon](https://github.com/avalonmediasystem/avalon) and [Avalon Bundle](https://github.com/samvera-labs/avalon-bundle) are recommended.
 
 ## Prerequisite
 
@@ -7,9 +7,9 @@ The project contains the Dockerfiles for all the necessary components of [Avalon
 1. Install [Docker](https://docs.docker.com/engine/installation/linux/centos/)
 2. Install [Docker-Compose](https://docs.docker.com/compose/install/)
 
-### OSX
+### MacOS
 * Install [Docker Desktop for Mac](https://docs.docker.com/docker-for-mac/install/)
-* `docker compose` is built into docker now. Don't use `docker-compose` on OSX.
+* `docker compose` is built into docker now. Don't use `docker-compose` on macOS.
 
 ## Usage
 1. Clone this Repo
@@ -18,7 +18,7 @@ The project contains the Dockerfiles for all the necessary components of [Avalon
   * `docker compose build` to get the prebuilt images from [Dockerhub](dockerhub.com)
   * `docker compose up` to stand up the stack. `-d` option to run in background
   * `docker compose up --build` to build and run in one command
-  * `docker exec -it avalon-docker_uva-avalon_1 bundle exec rake uva:migrate:all_derivatives` example to run rake tasks
+  * `docker exec -it avalon-docker-uva-avalon-1 bundle exec rake uva:migrate:all_derivatives` example to run rake tasks
 
 To access the site, visit http://localhost in your browser.
 
@@ -26,7 +26,7 @@ To access the site, visit http://localhost in your browser.
 * `docker compose logs <service_name>` to see the container(s) logs
 * `docker compose build --no-cache <service_name>` to build the image(s) from scratch
 * `docker ps` to see all running containers
-* `docker exec -it avalondocker_avalon_1 /bin/bash` to log into Avalon docker container
+* `docker exec -it avalon-docker-uva-avalon-1 /bin/bash` to log into Avalon docker container
 * `docker compose exec uva-avalon /bin/bash` This also connects to the running container
 * `docker compose exec uva-avalon bundle exec rails c` is also very useful
 * `docker system prune` is handy if you start running low on disk space
@@ -51,8 +51,14 @@ To access the site, visit http://localhost in your browser.
 
 ### Upgrade Notes
 
-* Upgrade to Avalon 7.7.2
-  * required solr upgrade to 9.x
-  * reindex with `docker exec containerID nohup bundle exec rake avalon:reindex[threads] &`
-  * `bundle exec rake avalon:migrate:collection_managers`
-  * `bundle exec rake avalon:migrate:caption_files`
+#### Upgrade to Avalon 7.7.2
+* required solr upgrade to 9.x
+* reindex with `docker exec containerID nohup bundle exec rake avalon:reindex[threads] &`
+* `bundle exec rake avalon:migrate:collection_managers`
+* `bundle exec rake avalon:migrate:caption_files`
+
+#### Upgrade to Avalon 8.1.1
+* created bin/yaz-config to allow zoom gem to build
+* updated active_encode_uva for active-encode 1.3.0
+* updated db/Dockerfile to Postgres 14
+* updated solr/Dockerfile to Solr 9

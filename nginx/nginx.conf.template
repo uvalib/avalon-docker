@@ -5,7 +5,7 @@ daemon off;
 events {
   worker_connections 1024;
 }
- 
+
 http {
   server {
     listen $AVALON_STREAMING_PORT;
@@ -15,25 +15,28 @@ http {
     vod_last_modified_types *;
     vod_metadata_cache metadata_cache 512m;
     vod_response_cache response_cache 128m;
-    gzip on;
-    gzip_types application/vnd.apple.mpegurl;
+    vod_hls_absolute_index_urls off;
+    vod_hls_absolute_master_urls off;
+
     open_file_cache          max=1000 inactive=5m;
     open_file_cache_valid    2m;
     open_file_cache_min_uses 1;
     open_file_cache_errors   on;
-    
+
     location /status {
-      access_log off;
       vod_status;
     }
-    
-    location ~ ^/avalon/(?<stream>.+)/(?<resource>.+\.(?:m3u8|ts)) {
+
+    location ~ ^/avalon/(?<stream>.+/(?<resource>.+\.(?:m3u8|ts))) {
       alias /data/$stream;
       vod hls;
 
+      gzip on;
+      gzip_types application/x-mpegURL;
+
       set $token "$arg_token";
       add_header X-Stream-Auth-Token "$token";
-      
+
       sub_filter_types application/vnd.apple.mpegurl;
       sub_filter_once off;
       sub_filter '.ts' ".ts?token=$token";
@@ -43,6 +46,29 @@ http {
       add_header Access-Control-Expose-Headers 'Server,range,Content-Length,Content-Range';
       add_header Access-Control-Allow-Methods 'GET, HEAD, OPTIONS';
       add_header Access-Control-Allow-Origin '*';
+      expires 100d;
+    }
+
+    location ~ ^/avalon/(.+/.+\.(?:mp3)) {
+      set $stream $1;
+      alias /data/$stream;
+
+      set $token "$arg_token";
+      add_header X-Stream-Auth-Token "$token";
+
+      gzip on;
+      gzip_types audio/mp3;
+
+      sub_filter_types audio/mp3;
+      sub_filter_once off;
+      sub_filter '.mp3' ".mp3?token=$token";
+
+      auth_request /auth;
+
+      add_header Access-Control-Allow-Headers '*';
+      add_header Access-Control-Expose-Headers 'Server,range,Content-Length,Content-Range';
+      add_header Access-Control-Allow-Methods 'GET, HEAD, OPTIONS';
+      add_header Access-Control-Allow-Origin "*";
       expires 100d;
     }
 
