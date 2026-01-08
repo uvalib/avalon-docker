@@ -1,0 +1,5 @@
+#! /bin/sh
+#
+# YAZ no longer defines this script but it is required to build the zoom gem.
+
+pkg-config "$@" yaz

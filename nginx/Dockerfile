@@ -1,7 +1,7 @@
-FROM        phusion/baseimage:0.11 as builder
+FROM        phusion/baseimage:0.11 AS builder
 RUN         DEBIAN_FRONTEND=noninteractive; \
             apt-get update \
-         && apt-get install -y \ 
+         && apt-get install -y \
             mediainfo \
             ffmpeg \
             x264 \

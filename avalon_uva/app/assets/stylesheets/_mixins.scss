@@ -1,4 +1,6 @@
-@mixin be-accessible(){
+@use "color-vars" as *;
+
+@mixin be-accessible {
     outline: 3px dotted $accessibility-highlight;
     outline-offset: 3px;
  }

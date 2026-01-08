@@ -4,6 +4,9 @@
 
 @import url('https://use.typekit.net/tgy5tlj.css');
 
+@use "color-vars" as *;
+@use "variables" as *;
+
 /// Franklin Gothic Regular (Book) is the preferred typeface as instructed by UVA Brand.
 $font-primary: 'franklin-gothic-urw', arial, sans-serif;
 
