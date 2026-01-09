@@ -49,6 +49,21 @@ To access the site, visit http://localhost in your browser.
 * Attach to the container to edit the live instance, final changes need to go in `./avalon`.
 * `docker compose up --build` will refresh the container with the contents of `./avalon` and start up the stack, but can be slow
 
+### Deployment
+To deploy to avalon-dev make sure that the proper version of avalon_upstream is checked out:
+```
+cd PROJECT_DIR/avalon-docker
+git submodule init
+git submodule update
+cd avalon_upstream
+git checkout v8.1.1
+cd ..
+git add avalon_upstream
+```
+
+When changes are pushed to https://github.com/uvalib/avalon-docker the UVALIB
+infrastructure will restart avalon-dev with the changes.
+
 ### Upgrade Notes
 
 #### Upgrade to Avalon 7.7.2
