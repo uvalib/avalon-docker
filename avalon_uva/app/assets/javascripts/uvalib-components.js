@@ -13,7 +13,7 @@ let uvalib_analytics_setup = ()=>{
     let trackEvent = (events)=>{
         if (Array.isArray(events) && events.length>0) {
             document.dispatchEvent(new CustomEvent("uvalib-analytics-event", {
-                detail: {event:events},
+                detail: {event: events},
                 bubbles: true
             }));
         }
@@ -26,12 +26,13 @@ let uvalib_analytics_setup = ()=>{
             // With those visible things out of the way, go ahead and load up the analytics tracking
             // 1 is the id for Status (logged in or not)
             // 2 is the id for Affiliation (virginia.edu)
-            let status = document.querySelector('.log-in-out').textContent.includes('Sign out');
-            let affiliation = status ? document.querySelector('.log-in-out').textContent.replace(/.*@(.*) \|.*/, '$1').trim() : "anonymous";
+            let controlText = document.querySelector('.log-in-out')?.textContent || "";
+            let status = controlText.includes('Sign out');
+            let affiliation = status ? controlText.replace(/.*@(.*) \|.*/, '$1').trim() : "anonymous";
             console.info(`status: ${status}`);
             console.info(`affiliation: ${affiliation}`);
             document.querySelector('uvalib-analytics').setAttribute('variables',JSON.stringify({
-                '1': status? "authenticated":"none",
+                '1': status ? "authenticated" : "none",
                 '2': affiliation
             }));
             loadModule('uvalib-analytics.js').then(()=>{
@@ -54,19 +55,20 @@ let uvalib_analytics_setup = ()=>{
                     videoPlayer.addEventListener('volumechange',()=>{ trackEvent(['media','volumechange',title,affiliation]); })
                 }
                 // Searched performed
-                let constraintLabel = document.querySelector('#appliedParams .constraints-label');
-                if (constraintLabel && constraintLabel.textContent && constraintLabel.textContent.includes('searched for:')) {
+                let constraintLabel = document.querySelector('#appliedParams .constraints-label')?.textContent || "";
+                if (constraintLabel.includes('searched for:')) {
                     // Just using the "searched for" label to make a keyword for tracking (just trowing filters together with commas)
-                    let keyword = [...document.querySelectorAll('#appliedParams .appliedFilter .constraint-value')].map(f=>f.textContent.trim().replace(/\n\s+/,'=')).join(',');
+                    let keyword = [...document.querySelectorAll('#appliedParams .applied-filter .constraint-value')].map(f=>f.textContent.trim().replace(/\n\s+/,'=')).join(',');
                     // Using the category field for the affiliation
                     let category = affiliation;
-                    let resultsCount = document.querySelector('.page_links .page_entries').textContent.includes('No entries found')?0:document.querySelector('.page_links .page_entries').textContent.trim().replace(/.*of /,'');
+                    let entries = document.querySelector('.page-links .page-entries')?.textContent || "";
+                    let resultsCount = ((entries === "") || entries.includes('No entries found')) ? 0 : entries.trim().replace(/.*of /, "");
                     setTimeout(()=>{
                         document.dispatchEvent(new CustomEvent("uvalib-analytics-search", {
-                            detail: {searchQuery:keyword, searchCategory:category, resultCount: resultsCount},
+                            detail: {searchQuery: keyword, searchCategory: category, resultCount: resultsCount},
                             bubbles: true
                         }));
-                    },1000)
+                    },1000);
                 }
                 // Track /media_objects views
                 if (window.location.pathname.match(/(?:\/playlists\/)|(?:\/media_objects\/)/) !== null) {
