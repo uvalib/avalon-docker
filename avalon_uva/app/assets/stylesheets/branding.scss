@@ -157,11 +157,27 @@ $input-color: $dark;
 
 /* Style fixes */
 
+// Limit clickable area to the logo image.
 .header-wrapper .header-logo a.block {
     width: fit-content;
 }
 
+// Limit clickable area to the thumbnail image.
+.result-thumbnail.block {
+    width: fit-content;
+}
+
+// Ensure Playlist Items tracker points to the first line of the item link.
+ul.ramp--structured-nav__tree li.active > a {
+    display: inline;
+}
+
 /* Needed to make the display consistent with the previous version */
+
+.alert-success {
+    background-color: $alert-success-bg;
+    border-color: $alert-success-border;
+}
 
 .bg-primary {
     background-color: $primary;
@@ -173,6 +189,12 @@ $input-color: $dark;
     border-color: $primary;
 }
 
+.btn-primary:hover {
+    color: $white;
+    background-color: $secondary;
+    border-color: $secondary;
+}
+
 .btn-info {
     background-color: $teal-lightest;
     border-color: $teal-lightest;
@@ -182,4 +204,18 @@ $input-color: $dark;
     color: #212529;
     background-color: #a8eaee;
     border-color: #9ee8ec;
+}
+
+.btn-danger:not(:disabled) {
+    background-color: $red;
+    border-color: $red;
+}
+
+.btn-danger:hover {
+    background-color: $red-darker;
+    border-color: $red-darker;
+}
+
+.page-item.active .page-link {
+    color: $dark !important;
 }
