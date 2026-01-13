@@ -160,16 +160,36 @@ $input-color: $dark;
 // Limit clickable area to the logo image.
 .header-wrapper .header-logo a.block {
     width: fit-content;
+    height: fit-content;
 }
 
 // Limit clickable area to the thumbnail image.
 .result-thumbnail.block {
     width: fit-content;
+    height: fit-content;
 }
 
 // Ensure Playlist Items tracker points to the first line of the item link.
 ul.ramp--structured-nav__tree li.active > a {
     display: inline;
+}
+
+// Ensure keyboard focus is indicated on controls.
+.btn:not(.btn-outline):focus-visible,
+#content .btn-outline-secondary:focus-visible {
+    background-color: $brand-blue-lightest;
+    outline: $brand-blue auto 1px !important;
+}
+
+// Ensure keyboard focus is indicated on view toggles.
+.btn:has(*:focus-visible) {
+    outline: $brand-blue auto 1px;
+    outline-offset: 1px;
+}
+
+// Allow keyboard focus to be fully visible on collection links.
+.collection-card-description h4 {
+    padding: 2px;
 }
 
 /* Needed to make the display consistent with the previous version */
