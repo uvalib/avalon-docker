@@ -331,27 +331,28 @@ Unless required by applicable law or agreed to in writing, software distributed
       $(event.currentTarget).find('.flash-message').html("Failed to update.")
     });
 
-    $('.glacier-request-form').on("ajax:complete", (event) => {
-      const { detail } = event;
-      console.debug(detail);
+    $('.glacier-request-form').on('ajax:complete', (event) => {
+      const [data, status, xhr] = event.detail || [];
       const flashMessage = $(event.currentTarget).find('.flash-message');
-      if (flashMessage) {
-        flashMessage.html = '';
-        const msgObj = document.createElement('pre');
-        if (detail[0].response) {
-          try {
-            let resp = JSON.parse(detail[0].response);
-            const {master_file, validation_context, ...details } = resp;
-            msgObj.textContent = JSON.stringify(details, null, 2);
+      if (!flashMessage.length) return;
 
-          } catch(error) {
-            msgObj.textContent = detail[0];
-          }
-        } else {
-          msgObj.textContent = detail[0];
-        }
-        flashMessage.append(msgObj);
+      flashMessage.empty();
+
+      const pre = document.createElement('pre');
+
+      const payload = data ?? (() => {
+        const raw = xhr?.responseText ?? '';
+        try { return JSON.parse(raw); } catch { return raw; }
+      })();
+
+      if (payload && typeof payload === 'object') {
+        const { master_file, validation_context, ...details } = payload;
+        pre.textContent = JSON.stringify(details, null, 2);
+      } else {
+        pre.textContent = String(payload ?? '');
       }
+
+      flashMessage.append(pre);
     });
   </script>
 <% end %>
