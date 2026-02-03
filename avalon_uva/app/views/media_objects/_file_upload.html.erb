@@ -158,10 +158,10 @@ Unless required by applicable law or agreed to in writing, software distributed
                     </div>
                   </div>
                 <% end %>
-                <%= form_with(url: '/glacier/masterfile', class: 'glacier-request-form col-sm-12 text-right') do |f| %>
+                <%= form_with(url: '/glacier/masterfile', class: 'glacier-request-form col-sm-12 text-end') do |f| %>
                   <%= f.hidden_field :id, value: section.id %>
                   <%= f.submit 'Request Master File', class: 'btn btn-sm btn-outline text-nowrap' %>
-                  <div class="flash-message block text-left"></div>
+                  <div class="flash-message block text-start"></div>
                 <%end%>
                 <div class="section-files">
                    <!-- captions -->
@@ -334,9 +334,9 @@ Unless required by applicable law or agreed to in writing, software distributed
     $('.glacier-request-form').on("ajax:complete", (event) => {
       const { detail } = event;
       console.debug(detail);
-      const flashMessage = event.currentTarget.querySelector('.flash-message');
+      const flashMessage = $(event.currentTarget).find('.flash-message');
       if (flashMessage) {
-        flashMessage.innerHTML = '';
+        flashMessage.html = '';
         const msgObj = document.createElement('pre');
         if (detail[0].response) {
           try {
@@ -350,7 +350,7 @@ Unless required by applicable law or agreed to in writing, software distributed
         } else {
           msgObj.textContent = detail[0];
         }
-        flashMessage.appendChild(msgObj);
+        flashMessage.append(msgObj);
       }
     });
   </script>

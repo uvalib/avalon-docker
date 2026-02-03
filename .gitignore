@@ -2,3 +2,6 @@
 .DS_Store
 masterfiles/*
 *.log
+solr_data/*
+.*.swp
+.*.swo
