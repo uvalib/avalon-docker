@@ -158,7 +158,7 @@ Unless required by applicable law or agreed to in writing, software distributed
                     </div>
                   </div>
                 <% end %>
-                <%= form_with(url: '/glacier/masterfile', class: 'glacier-request-form col-sm-12 text-end') do |f| %>
+                <%= form_with(url: '/glacier/masterfile', data: { remote: true, type: :json }, class: 'glacier-request-form col-sm-12 text-end') do |f| %>
                   <%= f.hidden_field :id, value: section.id %>
                   <%= f.submit 'Request Master File', class: 'btn btn-sm btn-outline text-nowrap' %>
                   <div class="flash-message block text-start"></div>
@@ -331,20 +331,10 @@ Unless required by applicable law or agreed to in writing, software distributed
       $(event.currentTarget).find('.flash-message').html("Failed to update.")
     });
 
-    $('.glacier-request-form').on('ajax:complete', (event) => {
-      const [data, status, xhr] = event.detail || [];
-      const flashMessage = $(event.currentTarget).find('.flash-message');
-      if (!flashMessage.length) return;
-
+    const displayGlacierResult = (flashMessage, payload, { prefix } = {}) => {
       flashMessage.empty();
 
       const pre = document.createElement('pre');
-
-      const payload = data ?? (() => {
-        const raw = xhr?.responseText ?? '';
-        try { return JSON.parse(raw); } catch { return raw; }
-      })();
-
       if (payload && typeof payload === 'object') {
         const { master_file, validation_context, ...details } = payload;
         pre.textContent = JSON.stringify(details, null, 2);
@@ -352,7 +342,39 @@ Unless required by applicable law or agreed to in writing, software distributed
         pre.textContent = String(payload ?? '');
       }
 
+      if (prefix) {
+        const strong = document.createElement('strong');
+        strong.textContent = `${prefix}\n`;
+        flashMessage.append(strong);
+      }
+
       flashMessage.append(pre);
-    });
+    };
+
+    const renderGlacier = (event, payload, { prefix } = {}) => {
+      const flashMessage = $(event.currentTarget).find('.flash-message')
+      if (!flashMessage.length) return;
+      displayGlacierResult(flashMessage, payload, { prefix });
+    };
+
+    const renderGlacierSuccess = (event) => {
+      // rails-ujs ajax:success => [data, status, xhr]
+      const [data] = event.detail || event.originalEvent?.detail || [];
+      renderGlacier(event, data, { prefix: 'Success:' });
+    };
+
+    const renderGlacierError = (event) => {
+      // rails-ujs ajax:error => [xhr, status, error]
+      const [xhr, status, error] = event.detail || event.originalEvent?.detail || [];
+      const raw = xhr?.responseText ?? '';
+      let payload = raw;
+      try { payload = JSON.parse(raw); } catch { /* leave as text */ }
+      payload = payload || error || status;
+      renderGlacier(event, payload, { prefix: 'Error:' });
+    };
+
+    $('.glacier-request-form')
+      .on('ajax:success', renderGlacierSuccess)
+      .on('ajax:error', renderGlacierError);
   </script>
 <% end %>
