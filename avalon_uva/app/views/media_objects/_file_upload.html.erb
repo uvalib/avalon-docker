@@ -364,11 +364,10 @@ Unless required by applicable law or agreed to in writing, software distributed
     };
 
     const renderGlacierError = (event) => {
-      // rails-ujs ajax:error => [xhr, status, error]
-      const [xhr, status, error] = event.detail || event.originalEvent?.detail || [];
-      const raw = xhr?.responseText ?? '';
-      let payload = raw;
-      try { payload = JSON.parse(raw); } catch { /* leave as text */ }
+      // rails-ujs ajax:error => [data, status, error]
+      const [data, status, error] = event.detail || event.originalEvent?.detail || [];
+      let payload = data ?? '';
+      try { payload = JSON.parse(payload); } catch { /* leave as text */ }
       payload = payload || error || status;
       renderGlacier(event, payload, { prefix: 'Error:' });
     };
