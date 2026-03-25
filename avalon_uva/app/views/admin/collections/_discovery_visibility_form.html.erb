@@ -26,7 +26,7 @@ Unless required by applicable law or agreed to in writing, software distributed
       <div class="form-check">
         <%= label_tag :hidden do %>
         <%= check_box_tag :hidden, '1', (hidden) , data: { testid: 'collection-hide-checkbox' }%>
-        Hide this item from search results
+        Hide this item from search results (and prevent it from showing up in Virgo)
         <% end %>
       </div>
       <%= hidden_field_tag :save_field, "discovery" %>
