@@ -6,7 +6,7 @@ version: 0.2
 
 env:
   variables:
-    terraform_version: 1.11.1
+    terraform_version: 1.15.8
 
 phases:
   install:
@@ -27,7 +27,7 @@ phases:
     commands:
       #- latest_build=$(aws --region=$AWS_REGION ssm get-parameter --name /containers/$CONTAINER_IMAGE/latest | grep "Value" | awk -F\" '{print $4}')
       # clone terraform repo
-      - git clone https://$GITLAB_USER:$GITLAB_TOKEN@gitlab.com/uvalib/terraform-infrastructure.git
+      - git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/uvalib/terraform-infrastructure.git
       # decrypt the instance private key
       - PRIVATE_KEY_NAME=avalon.lib.virginia.edu/staging/keys/avalon-staging.pem
       - PRIVATE_KEY=$CODEBUILD_SRC_DIR/terraform-infrastructure/$PRIVATE_KEY_NAME
