@@ -45,6 +45,7 @@ class GenerateCaptionsJob < ActiveJob::Base
           label: main_language.language_code,
           tags: %w[caption machine_generated],
           language: lang.nil? ? 'eng' : lang.alpha3_bibliographic,
+          parent_id: master_file.id
         )
         begin
           caption_file.file.attach(io: URI.open(temp_uri),
