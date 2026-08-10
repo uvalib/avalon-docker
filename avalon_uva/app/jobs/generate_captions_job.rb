@@ -6,6 +6,44 @@ class GenerateCaptionsJob < ActiveJob::Base
   queue_as :captions
   POLL_TIME = 1.minute
 
+  def self.job_name(master_file_id)
+    "#{master_file_id}-captions"
+  end
+
+  def self.in_progress?(master_file_id)
+    matcher = ->(job) { captions_sidekiq_job?(job, master_file_id) }
+
+    return true if Sidekiq::Queue.new('captions').any?(&matcher)
+    return true if Sidekiq::ScheduledSet.new.any?(&matcher)
+    return true if Sidekiq::RetrySet.new.any?(&matcher)
+
+    Sidekiq::Workers.new.any? do |_process_id, _thread_id, work|
+      payload = work['payload']
+      payload = JSON.parse(payload) if payload.is_a?(String)
+      captions_sidekiq_job?(payload, master_file_id)
+    rescue JSON::ParserError
+      false
+    end
+  end
+
+  def self.captions_sidekiq_job?(job, master_file_id)
+    args = if job.respond_to?(:args)
+             job.args
+           elsif job.is_a?(Hash)
+             job['args']
+           end
+    wrapper = args.is_a?(Array) ? args.first : args
+    return false unless wrapper.is_a?(Hash)
+
+    wrapper = wrapper.with_indifferent_access
+    return false unless wrapper['job_class'] == name
+
+    job_args = wrapper['arguments']
+    job_args.is_a?(Array) && job_args.first.to_s == master_file_id.to_s
+  rescue StandardError
+    false
+  end
+
   def perform(master_file_id)
     master_file = MasterFile.find(master_file_id)
     return if master_file.nil?
@@ -16,7 +54,7 @@ class GenerateCaptionsJob < ActiveJob::Base
       return
     end
 
-    job_name = "#{master_file_id}-captions"
+    job_name = self.class.job_name(master_file_id)
 
     # Check for existing transcription job
     client = Aws::TranscribeService::Client.new

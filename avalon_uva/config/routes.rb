@@ -257,4 +257,5 @@ Rails.application.routes.draw do
   end
 
   post '/glacier/masterfile', to: 'glacier#request_masterfile'
+  post '/generate_captions', to: 'generate_captions#create'
 end

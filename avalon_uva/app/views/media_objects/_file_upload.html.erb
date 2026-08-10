@@ -158,11 +158,20 @@ Unless required by applicable law or agreed to in writing, software distributed
                     </div>
                   </div>
                 <% end %>
-                <%= form_with(url: '/glacier/masterfile', data: { remote: true, type: :json }, class: 'glacier-request-form col-sm-12 text-end') do |f| %>
-                  <%= f.hidden_field :id, value: section.id %>
-                  <%= f.submit 'Request Master File', class: 'btn btn-sm btn-outline text-nowrap' %>
-                  <div class="flash-message block text-start"></div>
-                <%end%>
+                <div class="col-sm-12 d-flex justify-content-end gap-2 flex-wrap align-items-start">
+                  <% unless section.supplemental_files(tag: %w[caption machine_generated]).present? %>
+                    <%= form_with(url: '/generate_captions', data: { remote: true, type: :json }, class: 'generate-captions-form text-end') do |f| %>
+                      <%= f.hidden_field :id, value: section.id %>
+                      <%= f.submit 'Generate Captions', class: 'btn btn-sm btn-outline text-nowrap' %>
+                      <div class="flash-message block text-start"></div>
+                    <% end %>
+                  <% end %>
+                  <%= form_with(url: '/glacier/masterfile', data: { remote: true, type: :json }, class: 'glacier-request-form text-end') do |f| %>
+                    <%= f.hidden_field :id, value: section.id %>
+                    <%= f.submit 'Request Master File', class: 'btn btn-sm btn-outline text-nowrap' %>
+                    <div class="flash-message block text-start"></div>
+                  <% end %>
+                </div>
                 <div class="section-files">
                    <!-- captions -->
                    <% if section.is_video? %>
@@ -331,49 +340,41 @@ Unless required by applicable law or agreed to in writing, software distributed
       $(event.currentTarget).find('.flash-message').html("Failed to update.")
     });
 
-    const displayGlacierResult = (flashMessage, payload, { prefix } = {}) => {
-      flashMessage.empty();
-
-      const pre = document.createElement('pre');
-      if (payload && typeof payload === 'object') {
-        const { master_file, validation_context, ...details } = payload;
-        pre.textContent = JSON.stringify(details, null, 2);
-      } else {
-        pre.textContent = String(payload ?? '');
-      }
-
-      if (prefix) {
-        const strong = document.createElement('strong');
-        strong.textContent = `${prefix}\n`;
-        flashMessage.append(strong);
-      }
-
-      flashMessage.append(pre);
-    };
-
-    const renderGlacier = (event, payload, { prefix } = {}) => {
-      const flashMessage = $(event.currentTarget).find('.flash-message')
+    const renderJsonFlash = (event, payload) => {
+      const flashMessage = $(event.currentTarget).find('.flash-message');
       if (!flashMessage.length) return;
-      displayGlacierResult(flashMessage, payload, { prefix });
+
+      let message = '';
+      if (payload && typeof payload === 'object') {
+        message = payload.message;
+        if (!message && payload.errors) {
+          const errors = payload.errors;
+          message = Array.isArray(errors.base) ? errors.base.join(' ') : Object.values(errors).flat().join(' ');
+        }
+      }
+      flashMessage.text(message || String(payload ?? ''));
     };
 
-    const renderGlacierSuccess = (event) => {
+    const renderJsonFlashSuccess = (event) => {
       // rails-ujs ajax:success => [data, status, xhr]
       const [data] = event.detail || event.originalEvent?.detail || [];
-      renderGlacier(event, data, { prefix: 'Success:' });
+      renderJsonFlash(event, data);
     };
 
-    const renderGlacierError = (event) => {
+    const renderJsonFlashError = (event) => {
       // rails-ujs ajax:error => [data, status, error]
       const [data, status, error] = event.detail || event.originalEvent?.detail || [];
       let payload = data ?? '';
       try { payload = JSON.parse(payload); } catch { /* leave as text */ }
-      payload = payload || error || status;
-      renderGlacier(event, payload, { prefix: 'Error:' });
+      renderJsonFlash(event, payload || error || status);
     };
 
     $('.glacier-request-form')
-      .on('ajax:success', renderGlacierSuccess)
-      .on('ajax:error', renderGlacierError);
+      .on('ajax:success', renderJsonFlashSuccess)
+      .on('ajax:error', renderJsonFlashError);
+
+    $('.generate-captions-form')
+      .on('ajax:success', renderJsonFlashSuccess)
+      .on('ajax:error', renderJsonFlashError);
   </script>
 <% end %>

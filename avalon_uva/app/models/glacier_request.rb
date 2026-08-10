@@ -21,6 +21,13 @@ class GlacierRequest
     errors.add(e.class.to_s, e.inspect)
   end
 
+  def as_json(_options = {})
+    {
+      message: message,
+      errors: errors.to_hash
+    }
+  end
+
   private
 
   def request_payload
