@@ -754,7 +754,16 @@ class MasterFile < ActiveFedora::Base
 
   def reloadTechnicalMetadata!
     # Reset ffprobe
-    @ffprobe = Avalon::FFprobe.new(FileLocator.new(file_location, { auth_header: @auth_header }))
+    locator = FileLocator.new(file_location, { auth_header: @auth_header })
+    @ffprobe = Avalon::FFprobe.new(locator)
+
+    # UVA: Avalon::FFprobe MIME-sniffs via FileLocator#reader, which downloads the
+    # entire S3 object. For s3://, take Content-Type from a HEAD instead;
+    # stream/duration/aspect still come from ffprobe against FileLocator#location below.
+    if locator.uri.scheme == 's3'
+      content_type = s3_content_type_from_head(locator)
+      @ffprobe.define_singleton_method(:content_type) { |_media_file = nil| content_type }
+    end
 
     # Formats like MP4 can be caught as both audio and video
     # so the case statement flows in the preferred order
@@ -824,6 +833,17 @@ class MasterFile < ActiveFedora::Base
   end
 
   private
+
+  # S3 HEAD Content-Type for Avalon::FFprobe MIME checks. Based on Avalon::FFprobe#content_type
+  def s3_content_type_from_head(locator)
+    content_type = FileLocator::S3File.new(locator.uri).object.content_type.to_s
+    if content_type.blank? || content_type.in?(%w[application/octet-stream binary/octet-stream])
+      # Fall back on file extension if magic bytes fail to identify file
+      Marcel::MimeType.for(extension: File.extname(locator.uri.path))
+    else
+      content_type
+    end
+  end
 
   def generate_waveform
     WaveformJob.perform_later(id)
