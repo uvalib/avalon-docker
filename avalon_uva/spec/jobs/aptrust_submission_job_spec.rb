@@ -6,7 +6,7 @@ describe AptrustSubmissionJob do
   let(:client) { instance_double(Aptrust::Client) }
   let(:collection) { FactoryBot.create(:collection, unit: Avalon::ControlledVocabulary.find_by_name(:units).first) }
   let(:master_file) { double(id: 'mf1') }
-  let(:media_object) { double(id: 'mo1', sections: [master_file]) }
+  let(:media_object) { double(id: 'mo1', sections: [master_file], published?: true) }
   let(:s3_object) { double(bucket_name: 'archive', key: 'mf1.mov') }
   let(:source) { Aptrust::SourceResolver::Source.new(s3_object: s3_object, size: 10, filename: 'mf1.mov') }
   let(:submission) do
@@ -36,12 +36,21 @@ describe AptrustSubmissionJob do
       allow(AptrustBag).to receive(:needs_submission?).and_return(false)
       described_class.perform_now(submission.id)
       expect(submission.reload.status).to eq 'complete'
-      expect(submission.message).to match(/No new or changed items/)
+      expect(submission.message).to match(/No new or changed published items/)
+    end
+
+    it 'skips unpublished items' do
+      allow_any_instance_of(Admin::Collection).to receive(:media_object_ids).and_return(%w[mo1 mo2])
+      allow(MediaObject).to receive(:find).with('mo2').and_return(double(id: 'mo2', sections: [master_file], published?: false))
+      allow(AptrustBag).to receive(:needs_submission?).and_return(true)
+      allow(Aptrust::Glacier).to receive(:available?).and_return(true)
+      described_class.perform_now(submission.id)
+      expect(submission.bags.pluck(:media_object_id)).to eq ['mo1']
     end
 
     it 'splits large collections into several submissions' do
       allow_any_instance_of(Admin::Collection).to receive(:media_object_ids).and_return(%w[mo1 mo1b])
-      allow(MediaObject).to receive(:find).with('mo1b').and_return(double(id: 'mo1b', sections: [master_file]))
+      allow(MediaObject).to receive(:find).with('mo1b').and_return(double(id: 'mo1b', sections: [master_file], published?: true))
       allow(AptrustBag).to receive(:needs_submission?).and_return(true)
       allow(Aptrust::Glacier).to receive(:available?).and_return(true)
       allow(Settings.aptrust).to receive(:max_bags_per_submission).and_return(1)

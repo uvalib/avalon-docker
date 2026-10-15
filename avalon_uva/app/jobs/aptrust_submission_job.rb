@@ -27,18 +27,18 @@ class AptrustSubmissionJob < ApplicationJob
 
   private
 
-  # Selects the collection's media objects that need preserving and splits them into chunks,
+  # Selects the collection's published media objects that need preserving and splits them into chunks,
   # one aptrust-submit submission per chunk. Returns false when there is nothing to send.
   def plan(submission)
     collection = Admin::Collection.find(submission.scope_id)
     ids = collection.media_object_ids.select do |id|
       media_object = MediaObject.find(id)
-      media_object.sections.any? && AptrustBag.needs_submission?(media_object)
+      media_object.published? && media_object.sections.any? && AptrustBag.needs_submission?(media_object)
     end
 
     if ids.empty?
       submission.update!(status: 'complete', completed_at: Time.current,
-                         message: 'No new or changed items to submit')
+                         message: 'No new or changed published items to submit')
       return false
     end
 
