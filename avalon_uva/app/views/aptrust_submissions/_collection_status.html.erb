@@ -33,7 +33,7 @@
                   <div class="aptrust-note aptrust-note--error"><%= link_to bag.media_object_id, media_object_path(bag.media_object_id) %>: <%= bag.error_message.truncate(120) %></div>
                 <% end %>
               </td>
-              <td class="small"><%= submission.sid || '—' %></td>
+              <td class="small"><%= aptrust_submission_link(submission) %></td>
             </tr>
           <% end %>
         </tbody>

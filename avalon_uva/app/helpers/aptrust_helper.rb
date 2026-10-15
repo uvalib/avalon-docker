@@ -39,4 +39,14 @@ module AptrustHelper
   def aptrust_status_class(submission)
     STATUS_STYLES.fetch(submission.status, 'aptrust-state--active')
   end
+
+  # Links the submission id to its page in the aptrust-submit client, when that page is configured
+  def aptrust_submission_link(submission)
+    return '—' if submission.sid.blank?
+
+    base = Settings.aptrust&.submission_page_url
+    return submission.sid if base.blank?
+
+    link_to submission.sid, "#{base.chomp('/')}/#{ERB::Util.url_encode(submission.sid)}", target: '_blank', rel: 'noopener'
+  end
 end

@@ -83,7 +83,7 @@ describe AptrustSubmissionJob do
     end
 
     it 'registers, stages each bag, then initiates with the staged bag folders' do
-      expect(client).to receive(:register).and_return('sid' => 'sid-1', 'bucket' => 'inbound', 'path' => 'cid/sid-1')
+      expect(client).to receive(:register).with(collection: "Collection: #{collection.name}").and_return('sid' => 'sid-1', 'bucket' => 'inbound', 'path' => 'cid/sid-1')
       expect(builder).to receive(:build!).with(media_object)
       described_class.perform_now(submission.id)
       expect(submission.bags.first.status).to eq 'staged'

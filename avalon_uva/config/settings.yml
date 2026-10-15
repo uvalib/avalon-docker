@@ -136,7 +136,8 @@ aptrust:
   submit_url:
   submission_status_url:
   bag_status_url:
-  name_prefix: 'Avalon' # bag names are <prefix>-<media object id>, collection names <prefix>-<collection id>
+  submission_page_url: # aptrust-submit client page for a submission; the sid is appended
+  name_prefix: 'Avalon' # bag names are <prefix>-<media object id>; submissions to aptrust-submit are named '<scope>: <name>'
   restore_tier: 'Standard' # Glacier restore tier: Standard, Bulk or Expedited
   restore_days: 7
   restore_poll: 3600 # seconds between Glacier restore checks

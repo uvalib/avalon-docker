@@ -9,6 +9,8 @@ class AptrustSubmission < ApplicationRecord
   TERMINAL = %w[complete incomplete error abandoned].freeze
   # remote (aptrust-submit) submission states that end a submission
   REMOTE_TERMINAL = %w[complete incomplete error abandoned].freeze
+  # aptrust-submit stores the submission name as VARCHAR(64)
+  COLLECTION_NAME_LIMIT = 64
 
   has_many :bags, class_name: 'AptrustBag', dependent: :destroy
 
@@ -44,8 +46,9 @@ class AptrustSubmission < ApplicationRecord
     TERMINAL.include?(status)
   end
 
+  # The submission name shown in aptrust-submit, "<scope>: <name>", e.g. "Collection: Modern History of Virginia Winemaking"
   def collection_name
-    "#{Settings.aptrust.name_prefix}-#{collection_id}"
+    "#{scope_type.humanize}: #{scope_label}".squish.truncate(COLLECTION_NAME_LIMIT, omission: '')
   end
 
   def fail!(error)
@@ -76,5 +79,15 @@ class AptrustSubmission < ApplicationRecord
       completed_at: completed_at,
       last_polled_at: last_polled_at
     }
+  end
+
+  private
+
+  # The name of what was submitted, or its id
+  def scope_label
+    label = scope_type == 'media_object' ? MediaObject.find(scope_id).title : Admin::Collection.find(scope_id).name
+    label.presence || scope_id
+  rescue ActiveFedora::ObjectNotFoundError
+    scope_id
   end
 end
