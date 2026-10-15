@@ -167,6 +167,7 @@ services:
       - SETTINGS__APTRUST__SUBMIT_URL
       - SETTINGS__APTRUST__SUBMISSION_STATUS_URL
       - SETTINGS__APTRUST__BAG_STATUS_URL
+      - SETTINGS__APTRUST__SUBMISSION_PAGE_URL
 
     volumes:
       - ./masterfiles:/masterfiles/:rw

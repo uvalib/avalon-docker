@@ -6,9 +6,11 @@ describe Aptrust::BagBuilder do
   let(:s3) { Aws::S3::Client.new(stub_responses: true) }
   let(:bag) { AptrustBag.new(media_object_id: 'mo1', bag_name: 'Avalon-mo1') }
   let(:builder) { described_class.new(bag: bag, bucket: 'inbound', deposit_path: 'cid/sid', s3_client: s3) }
-  let(:master_file_path) do
-    Tempfile.new(['master', '.mp4']).tap { |f| f.write('master file bytes'); f.flush }.path
-  end
+  # keep the Tempfile referenced so garbage collection doesn't delete it too soon
+  let(:master_tempfile) { Tempfile.new(['master', '.mp4']).tap { |f| f.write('master file bytes'); f.flush } }
+  let(:master_file_path) { master_tempfile.path }
+
+  after { master_tempfile.close! }
   let(:caption) do
     double(id: 7, label: 'English captions', tags: ['caption'], language: 'eng', parent_id: 'mf1',
            created_at: Time.current, updated_at: Time.current, as_json: { type: 'caption' },
