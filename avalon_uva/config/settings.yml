@@ -128,6 +128,20 @@ caption_default:
   name: 'English'
 captions:
   tmp_s3: # tmp dir if the file is not already in s3
+# Self-serve collection submission to APTrust via the uvalib aptrust-submit service
+aptrust:
+  enabled: false
+  client_id: # aptrust-submit client identifier (cid-avalon-...)
+  register_url:
+  submit_url:
+  submission_status_url:
+  bag_status_url:
+  name_prefix: 'Avalon' # bag names are <prefix>-<media object id>, collection names <prefix>-<collection id>
+  restore_tier: 'Standard' # Glacier restore tier: Standard, Bulk or Expedited
+  restore_days: 7
+  restore_poll: 3600 # seconds between Glacier restore checks
+  max_bags_per_submission: 50
+  http_timeout: 60
 recaptcha:
   site_key: # Setting a site_key will enable recaptcha on the comments form
   secret_key: # Required along with site_key

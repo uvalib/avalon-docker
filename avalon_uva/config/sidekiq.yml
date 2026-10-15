@@ -21,4 +21,5 @@
   - update_dependent_permalinks
   - waveform
   - captions
+  - aptrust
 :max_retries: 14

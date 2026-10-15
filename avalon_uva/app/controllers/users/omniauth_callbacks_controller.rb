@@ -67,8 +67,8 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   end
 
   def shibboleth_callback_phase
-    eppn = request.env['HTTP_EPPN']
-    affiliation = request.env['HTTP_AFFILIATION']
+    eppn = shibboleth_header('EPPN')
+    affiliation = shibboleth_header('AFFILIATION')
     if eppn.to_s.include?('@')
       @uid = eppn
     elsif affiliation
@@ -81,7 +81,16 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       raise 'missing shibboleth header'
     end
 
-    @affiliations = (parseAffiliationString(request.env['HTTP_AFFILIATION']) | getInferredAffiliations | parseMemberString(request.env['HTTP_MEMBER']))
+    @affiliations = (parseAffiliationString(affiliation) | getInferredAffiliations | parseMemberString(shibboleth_header('MEMBER')))
+  end
+
+  # Shibboleth SP request header. In development only, falls back to an ?eppn= / ?affiliation= / ?member=
+  # param or a DEV_SHIBBOLETH_<NAME> env var
+  def shibboleth_header(name)
+    value = request.env["HTTP_#{name}"]
+    return value if value.present? || !Rails.env.development?
+
+    params[name.downcase].presence || ENV["DEV_SHIBBOLETH_#{name}"].presence
   end
 
   def parseAffiliationString(affiliation)

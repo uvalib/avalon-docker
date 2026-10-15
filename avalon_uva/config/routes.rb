@@ -90,6 +90,8 @@ Rails.application.routes.draw do
         get 'poster'
         post 'poster', action: :attach_poster, as: 'attach_poster'
         delete 'poster', action: :remove_poster, as: 'remove_poster'
+        get 'aptrust', controller: '/aptrust_submissions', action: :show, as: 'aptrust'
+        post 'aptrust', controller: '/aptrust_submissions', action: :create
       end
     end
 

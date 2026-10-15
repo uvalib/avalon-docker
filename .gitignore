@@ -5,3 +5,6 @@ masterfiles/*
 solr_data/*
 .*.swp
 .*.swo
+tmp/*
+.claude/*
+.cursor/*

@@ -1,0 +1,74 @@
+<% submissions = AptrustSubmission.for_collection(collection.id).recent.limit(5).includes(:bags).to_a %>
+<% in_progress = submissions.any? { |s| !s.terminal? } %>
+<div id="aptrust_status" class="card mt-3" data-testid="collection-aptrust-status"
+     data-refresh-url="<%= aptrust_admin_collection_path(collection) %>" data-in-progress="<%= in_progress %>">
+  <div class="card-header">
+    <h3 class="card-title fs-6 mb-0">APTrust preservation</h3>
+  </div>
+  <div class="card-body">
+    <% if submissions.empty? %>
+      <p class="mb-0">This collection has not been submitted to APTrust.</p>
+    <% else %>
+      <table class="table table-sm mb-0">
+        <thead>
+          <tr><th>Requested</th><th>By</th><th>Status</th><th>Items</th><th>Submission</th></tr>
+        </thead>
+        <tbody>
+          <% submissions.each do |submission| %>
+            <% counts = submission.bags.group_by(&:status).transform_values(&:size) %>
+            <tr>
+              <td><%= l(submission.created_at.in_time_zone, format: :short) %></td>
+              <td><%= submission.requested_by %></td>
+              <td>
+                <span class="aptrust-state <%= aptrust_status_class(submission) %>"><%= aptrust_status_label(submission) %></span>
+                <% if submission.message.present? %><div class="aptrust-note"><%= submission.message %></div><% end %>
+                <% if submission.error_message.present? %><div class="aptrust-note aptrust-note--error"><%= submission.error_message %></div><% end %>
+              </td>
+              <td>
+                <%= submission.bags.size %>
+                <% if counts.except('submitted', 'pending').any? %>
+                  <div class="aptrust-note"><%= counts.map { |status, n| "#{n} #{status}" }.join(', ') %></div>
+                <% end %>
+                <% submission.bags.select { |b| b.error_message.present? }.first(3).each do |bag| %>
+                  <div class="aptrust-note aptrust-note--error"><%= link_to bag.media_object_id, media_object_path(bag.media_object_id) %>: <%= bag.error_message.truncate(120) %></div>
+                <% end %>
+              </td>
+              <td class="small"><%= submission.sid || '—' %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>
+<style>
+  #aptrust_status .aptrust-state { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 1rem; font-size: 0.85em; font-weight: 600; border: 1px solid currentColor; }
+  #aptrust_status .aptrust-state--active { color: #1d5c8c; background: #e8f1f8; }
+  #aptrust_status .aptrust-state--complete { color: #23663a; background: #e6f4ea; }
+  #aptrust_status .aptrust-state--warning { color: #7a5200; background: #fdf3dc; }
+  #aptrust_status .aptrust-state--error { color: #a3123a; background: #fdecef; }
+  #aptrust_status .aptrust-state--ended { color: #555; background: #f1f1f1; }
+  #aptrust_status .aptrust-note { font-size: 0.85em; color: #555; margin-top: 0.2rem; }
+  #aptrust_status .aptrust-note--error { color: #a3123a; }
+</style>
+<% if in_progress %>
+<script>
+  (function () {
+    var refresh = function () {
+      var el = document.getElementById('aptrust_status');
+      if (!el || el.dataset.inProgress !== 'true') return;
+      fetch(el.dataset.refreshUrl, { headers: { 'Accept': 'text/html' }, credentials: 'same-origin' })
+        .then(function (response) { return response.ok ? response.text() : null; })
+        .then(function (html) {
+          if (!html) return;
+          var wrapper = document.createElement('div');
+          wrapper.innerHTML = html;
+          var replacement = wrapper.querySelector('#aptrust_status');
+          if (replacement) el.replaceWith(replacement);
+          if (!replacement || replacement.dataset.inProgress !== 'true') window.location.reload();
+        });
+    };
+    window.setInterval(refresh, 60000);
+  })();
+</script>
+<% end %>
