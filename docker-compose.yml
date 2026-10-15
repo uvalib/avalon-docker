@@ -95,6 +95,7 @@ services:
       - redis
       - hls
     environment:
+      - GLACIER_REQUEST_URL
       - TMPDIR=/home/app/avalon/tmp
       - APP_NAME="UVA Library Avalon"
       - SECRET_KEY_BASE=abc
