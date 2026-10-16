@@ -46,9 +46,9 @@ class AptrustSubmission < ApplicationRecord
     TERMINAL.include?(status)
   end
 
-  # The submission name shown in aptrust-submit, "<scope>: <name>", e.g. "Collection: Modern History of Virginia Winemaking"
+  # The submission name shown in aptrust-submit e.g. "Modern History of Virginia Winemaking collection"
   def collection_name
-    "#{scope_type.humanize}: #{scope_label}".squish.truncate(COLLECTION_NAME_LIMIT, omission: '')
+    "#{scope_label}".squish.truncate(COLLECTION_NAME_LIMIT, omission: '')
   end
 
   def fail!(error)
