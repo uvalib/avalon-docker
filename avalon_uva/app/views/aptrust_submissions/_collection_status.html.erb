@@ -1,44 +1,59 @@
 <% submissions = AptrustSubmission.for_collection(collection.id).recent.limit(5).includes(:bags).to_a %>
 <% in_progress = submissions.any? { |s| !s.terminal? } %>
-<div id="aptrust_status" class="card mt-3" data-testid="collection-aptrust-status"
+<div id="aptrust_status" data-testid="collection-aptrust-status"
      data-refresh-url="<%= aptrust_admin_collection_path(collection) %>" data-in-progress="<%= in_progress %>">
-  <div class="card-header">
-    <h3 class="card-title fs-6 mb-0">APTrust preservation</h3>
-  </div>
-  <div class="card-body">
+  <div class="modal-body">
+    <h2 class="fs-6">Recent submissions</h2>
     <% if submissions.empty? %>
       <p class="mb-0">This collection has not been submitted to APTrust.</p>
     <% else %>
-      <table class="table table-sm mb-0">
-        <thead>
-          <tr><th>Requested</th><th>By</th><th>Status</th><th>Items</th><th>Submission</th></tr>
-        </thead>
-        <tbody>
-          <% submissions.each do |submission| %>
-            <% counts = submission.bags.group_by(&:status).transform_values(&:size) %>
-            <tr>
-              <td><%= l(submission.created_at.in_time_zone, format: :short) %></td>
-              <td><%= submission.requested_by %></td>
-              <td>
-                <span class="aptrust-state <%= aptrust_status_class(submission) %>"><%= aptrust_status_label(submission) %></span>
-                <% if submission.message.present? %><div class="aptrust-note"><%= submission.message %></div><% end %>
-                <% if submission.error_message.present? %><div class="aptrust-note aptrust-note--error"><%= submission.error_message %></div><% end %>
-              </td>
-              <td>
-                <%= submission.bags.size %>
-                <% if counts.except('submitted', 'pending').any? %>
-                  <div class="aptrust-note"><%= counts.map { |status, n| "#{n} #{status}" }.join(', ') %></div>
-                <% end %>
-                <% submission.bags.select { |b| b.error_message.present? }.first(3).each do |bag| %>
-                  <div class="aptrust-note aptrust-note--error"><%= link_to bag.media_object_id, media_object_path(bag.media_object_id) %>: <%= bag.error_message.truncate(120) %></div>
-                <% end %>
-              </td>
-              <td class="small"><%= aptrust_submission_link(submission) %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead>
+            <tr><th>Requested</th><th>By</th><th>Status</th><th>Items</th><th>Submission</th></tr>
+          </thead>
+          <tbody>
+            <% submissions.each do |submission| %>
+              <% counts = submission.bags.group_by(&:status).transform_values(&:size) %>
+              <tr>
+                <td><%= l(submission.created_at.in_time_zone, format: :short) %></td>
+                <td><%= submission.requested_by %></td>
+                <td>
+                  <span class="aptrust-state <%= aptrust_status_class(submission) %>"><%= aptrust_status_label(submission) %></span>
+                  <% if submission.message.present? %><div class="aptrust-note"><%= submission.message %></div><% end %>
+                  <% if submission.error_message.present? %><div class="aptrust-note aptrust-note--error"><%= submission.error_message %></div><% end %>
+                </td>
+                <td>
+                  <%= submission.bags.size %>
+                  <% if counts.except('submitted', 'pending').any? %>
+                    <div class="aptrust-note"><%= counts.map { |status, n| "#{n} #{status}" }.join(', ') %></div>
+                  <% end %>
+                  <% submission.bags.select { |b| b.error_message.present? }.first(3).each do |bag| %>
+                    <div class="aptrust-note aptrust-note--error"><%= link_to bag.media_object_id, media_object_path(bag.media_object_id) %>: <%= bag.error_message.truncate(120) %></div>
+                  <% end %>
+                </td>
+                <td class="small"><%= aptrust_submission_link(submission) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
     <% end %>
+
+    <section class="aptrust-submit mt-4" aria-labelledby="aptrustSubmitHeading">
+      <h2 class="fs-6" id="aptrustSubmitHeading">Submit this collection</h2>
+      <p class="small">Every published Media Object in <strong><%= collection.name %></strong> that is new, or has changed since its last successful APTrust submission, will be preserved in APTrust. Unpublished items, and unchanged items that are already preserved, are skipped.</p>
+      <p class="small">For each item, the descriptive and structural metadata, supplemental files (including captions and transcripts) and master files are sent. Derivatives are not included.</p>
+      <p class="small">Master files are restored from Glacier first, which can take several hours. The collection can't be submitted again until this submission finishes.</p>
+      <div class="text-end">
+        <%= button_to(in_progress ? 'Submission in progress' : 'Submit to APTrust', aptrust_admin_collection_path(collection),
+                      method: :post, class: 'btn btn-primary', disabled: in_progress,
+                      form: { class: 'd-inline' }, data: { testid: 'collection-aptrust-submit-btn' }) %>
+      </div>
+    </section>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Close</button>
   </div>
 </div>
 <style>
@@ -50,13 +65,16 @@
   #aptrust_status .aptrust-state--ended { color: #555; background: #f1f1f1; }
   #aptrust_status .aptrust-note { font-size: 0.85em; color: #555; margin-top: 0.2rem; }
   #aptrust_status .aptrust-note--error { color: #a3123a; }
+  #aptrust_status .aptrust-submit { border: 1px solid #dee2e6; border-left: 4px solid #1d5c8c; border-radius: 0.25rem; padding: 1rem; background: #f8f9fa; }
+  #aptrust_status .aptrust-submit p:last-of-type { margin-bottom: 0.75rem; }
 </style>
 <% if in_progress %>
 <script>
   (function () {
+    // refresh the status while the modal is open and a submission is in progress
     var refresh = function () {
       var el = document.getElementById('aptrust_status');
-      if (!el || el.dataset.inProgress !== 'true') return;
+      if (!el || el.dataset.inProgress !== 'true' || !el.closest('.modal.show')) return;
       fetch(el.dataset.refreshUrl, { headers: { 'Accept': 'text/html' }, credentials: 'same-origin' })
         .then(function (response) { return response.ok ? response.text() : null; })
         .then(function (html) {
@@ -65,9 +83,10 @@
           wrapper.innerHTML = html;
           var replacement = wrapper.querySelector('#aptrust_status');
           if (replacement) el.replaceWith(replacement);
-          if (!replacement || replacement.dataset.inProgress !== 'true') window.location.reload();
         });
     };
+    var modal = document.getElementById('aptrust_modal');
+    if (modal) modal.addEventListener('shown.bs.modal', refresh);
     window.setInterval(refresh, 60000);
   })();
 </script>

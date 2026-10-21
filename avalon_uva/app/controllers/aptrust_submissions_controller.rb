@@ -29,7 +29,8 @@ class AptrustSubmissionsController < ApplicationController
         else
           flash[:error] = 'An APTrust submission is already in progress for this collection.'
         end
-        redirect_to admin_collection_path(@collection)
+        # reopens the APTrust modal on the collection page
+        redirect_to admin_collection_path(@collection, anchor: 'aptrust')
       end
       format.json { render json: status_payload, status: submission ? :created : :conflict }
     end

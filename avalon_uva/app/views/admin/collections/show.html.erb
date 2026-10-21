@@ -87,17 +87,10 @@ Unless required by applicable law or agreed to in writing, software distributed
     <%= link_to('Create An Item', new_media_object_path(collection_id: @collection.id), class: 'btn btn-primary', data: { testid: 'collection-create-item-btn' }) if can? :create, MediaObject %>
     <%= link_to('List All Items', search_catalog_path('f[collection_ssim][]' => @collection.name), class: 'btn btn-outline') %>
     <%= button_tag('Edit Collection Info', class: 'btn btn-outline', data: {"bs-toggle": "modal", "bs-target": "#new_collection", testid:"collection-edit-collection-info"}) if can? :update, @collection %>
-    <% if can_submit_to_aptrust?(@collection) %>
-      <% aptrust_in_progress = AptrustSubmission.in_progress_for_collection?(@collection.id) %>
-      <%= button_tag(aptrust_in_progress ? 'APTrust submission in progress' : 'Submit to APTrust',
-                     type: 'button', class: 'btn btn-outline', disabled: aptrust_in_progress,
-                     data: {"bs-toggle": "modal", "bs-target": "#aptrust_submit_modal", testid: "collection-aptrust-submit-btn"}) %>
-    <% end %>
+    <%= button_tag('AP Trust Info', type: 'button', class: 'btn btn-outline',
+                   data: {"bs-toggle": "modal", "bs-target": "#aptrust_modal", testid: "collection-aptrust-btn"}) if can_submit_to_aptrust?(@collection) %>
   </div>
-  <% if can_submit_to_aptrust?(@collection) %>
-    <%= render 'aptrust_submissions/collection_status', collection: @collection %>
-    <%= render 'aptrust_submissions/submit_modal', collection: @collection %>
-  <% end %>
+  <%= render 'aptrust_submissions/modal', collection: @collection if can_submit_to_aptrust?(@collection) %>
   <div>
     <p>Or <a
         href='https://samvera.atlassian.net/wiki/spaces/AVALON/pages/1957954666/Avalon+Collections+Guide#AvalonCollectionsGuide-UploadingviaBatch'><b>learn
