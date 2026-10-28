@@ -49,6 +49,20 @@ To access the site, visit http://localhost in your browser.
 * Attach to the container to edit the live instance, final changes need to go in `./avalon`.
 * `docker compose up --build` will refresh the container with the contents of `./avalon` and start up the stack, but can be slow
 
+### Running Tests
+Specs run in a separate test stack defined in `docker-compose.test.yml` (with it's own db, fedora, solr and redis), because data is wiped each run. Layer it on `docker-compose.yml`:
+
+```
+docker compose build uva-avalon
+docker compose -f docker-compose.yml -f docker-compose.test.yml up -d test
+docker compose -f docker-compose.yml -f docker-compose.test.yml exec test bundle exec rails db:create db:schema:load db:migrate
+docker compose -f docker-compose.yml -f docker-compose.test.yml exec test bundle exec rspec spec/services/aptrust spec/models/aptrust_submission_spec.rb
+```
+
+* Specs are copied into the image, so rebuild `uva-avalon` (and recreate `test` with `up -d --force-recreate test`) after changing code or specs
+* Run `db:migrate` again whenever the `test` container is recreated: `db/schema.rb` comes from upstream and lacks the UVA migrations in `avalon_uva/db/migrate`, so specs fail with `ActiveRecord::PendingMigrationError`
+* `docker compose -f docker-compose.yml -f docker-compose.test.yml down` stops the test stack along with the dev stack
+
 ### Deployment
 To deploy to avalon-dev make sure that the proper version of avalon_upstream is checked out:
 ```

@@ -1,0 +1,81 @@
+# Isolated test stack for running specs, layered on docker-compose.yml.
+# Specs wipe their database, Fedora and Solr, so these are separate from the dev services.
+#
+#   docker compose build uva-avalon
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml up -d test
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml exec test bash -lc 'bundle exec rails db:create db:schema:load db:migrate'
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml exec test bundle exec rspec spec/models/aptrust_bag_spec.rb
+#
+# Run db:migrate again whenever the test container is recreated: the image's db/schema.rb comes from
+# upstream and lacks UVA's tables (avalon_uva/db/migrate), so Rails reloads it and reports pending migrations.
+# Specs are baked into the image; rebuild uva-avalon (or docker cp) after editing them.
+
+services:
+  db-test:
+    image: postgres:14-alpine
+    environment:
+      # matches the DatabaseCleaner url_allowlist in spec/rails_helper.rb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=avalon
+    networks:
+      avalon-network:
+
+  fedora-test:
+    image: avalonmediasystem/fedora:4.7.5
+    environment:
+      - JAVA_OPTIONS=-Dfcrepo.modeshape.configuration=classpath:/config/file-simple/repository.json -Dfcrepo.home=/data
+    networks:
+      avalon-network:
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  solr-test:
+    image: avalon-docker-solr:latest # built by the solr service in docker-compose.yml
+    tmpfs:
+      - /tmp
+    entrypoint:
+      - docker-entrypoint.sh
+      - solr-precreate
+      - avalon
+      - /opt/solr/avalon_conf
+    environment:
+      - SOLR_MODULES=analysis-extras,extraction
+    networks:
+      avalon-network:
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  redis-test:
+    image: redis:alpine
+    networks:
+      avalon-network:
+
+  test:
+    image: avalon-docker-uva-avalon:latest # built by the uva-avalon service in docker-compose.yml
+    command: bash -c "tail -f /dev/null"
+    depends_on:
+      - db-test
+      - fedora-test
+      - solr-test
+      - redis-test
+    environment:
+      - RAILS_ENV=test
+      - DATABASE_URL=postgresql://postgres:password@db-test/avalon
+      - DATABASE_CLEANER_ALLOW_REMOTE_DATABASE_URL=true
+      - FEDORA_URL=http://fedoraAdmin:fedoraAdmin@fedora-test:8080/fedora/rest
+      - FEDORA_BASE_PATH=/test
+      - FEDORA_NAMESPACE=avalon
+      - SOLR_URL=http://solr-test:8983/solr/avalon
+      - SETTINGS__REDIS__HOST=redis-test
+      - SETTINGS__REDIS__PORT=6379
+      - SETTINGS__FFMPEG__PATH=/usr/bin/ffmpeg
+      - MEDIAINFO_PATH=/usr/bin/mediainfo
+      - SECRET_KEY_BASE=abc
+      - AWS_REGION=us-east-1
+    networks:
+      avalon-network:

@@ -40,15 +40,15 @@ describe AptrustSubmission do
   end
 
   describe '#collection_name' do
-    it 'is the scope and the collection name' do
+    it 'is the collection name' do
       allow(Admin::Collection).to receive(:find).with('col1').and_return(double(name: 'Virginia  Folklore '))
-      expect(create_submission('requested').collection_name).to eq 'Collection: Virginia Folklore'
+      expect(create_submission('requested').collection_name).to eq 'Virginia Folklore'
     end
 
     it 'uses the title for a media object submission' do
       allow(MediaObject).to receive(:find).with('mo1').and_return(double(title: 'Field recordings'))
       submission = described_class.create!(scope_type: 'media_object', scope_id: 'mo1', collection_id: 'col1')
-      expect(submission.collection_name).to eq 'Media object: Field recordings'
+      expect(submission.collection_name).to eq 'Field recordings'
     end
 
     it 'fits the aptrust-submit column' do
@@ -58,7 +58,7 @@ describe AptrustSubmission do
 
     it 'falls back to the id when the collection is gone' do
       allow(Admin::Collection).to receive(:find).with('col1').and_raise(ActiveFedora::ObjectNotFoundError)
-      expect(create_submission('requested').collection_name).to eq 'Collection: col1'
+      expect(create_submission('requested').collection_name).to eq 'col1'
     end
   end
 end
