@@ -75,7 +75,9 @@ module MediaObjectsHelper
   end
 
   def gather_notes_of_type media_object, type
-    media_object.note.present? ? media_object.note.select{|n| n[:type]==type}.collect{|n|n[:note]} : []
+    notes = media_object.note.present? ? media_object.note.select{|n| n[:type]==type}.collect{|n|n[:note]} : []
+    notes += [AptrustBag.archive_note_for_item(media_object.id)].compact if type == 'general'
+    notes
   end
 
   def display_collection(media_object)

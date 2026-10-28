@@ -31,6 +31,36 @@ class AptrustBag < ApplicationRecord
     modified_at > last.source_modified_at
   end
 
+  # When this item was last successfully preserved, or nil
+  def self.last_archived_at_for_item(media_object_id)
+    where(media_object_id: media_object_id, status: 'complete').maximum(:updated_at)
+  end
+
+  # When any item in this collection was last successfully preserved, or nil
+  def self.last_archived_at_for_collection(collection_id)
+    joins(:submission)
+      .where(aptrust_submissions: { collection_id: collection_id }, status: 'complete')
+      .maximum(arel_table[:updated_at])
+  end
+
+  # Public sentence for an item, or nil when it has never been archived
+  def self.archive_note_for_item(media_object_id)
+    archive_note(last_archived_at_for_item(media_object_id), 'item')
+  end
+
+  # Public sentence for a collection, or nil when none of its items have been archived
+  def self.archive_note_for_collection(collection_id)
+    archive_note(last_archived_at_for_collection(collection_id), 'collection')
+  end
+
+  # Public sentence for a collection or item, or nil when it has never been archived
+  def self.archive_note(time, subject)
+    return if time.blank?
+
+    date = I18n.l(time.in_time_zone.to_date, format: :long)
+    "This #{subject} was last archived to APTrust on #{date}."
+  end
+
   # Latest modification time across a media object, its master files and their supplemental files
   def self.source_modified_at(media_object)
     objects = [media_object, *media_object.sections]

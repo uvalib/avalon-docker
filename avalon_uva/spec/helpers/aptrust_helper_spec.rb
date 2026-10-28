@@ -3,6 +3,20 @@
 require 'rails_helper'
 
 describe AptrustHelper, type: :helper do
+  describe '#aptrust_archive_note' do
+    it 'renders the collection archive sentence' do
+      allow(AptrustBag).to receive(:archive_note_for_collection).with('col1').and_return('This collection was last archived to APTrust on October 28, 2026.')
+      note = Nokogiri::HTML.fragment(helper.aptrust_archive_note('col1')).at('p')
+      expect(note.text).to eq 'This collection was last archived to APTrust on October 28, 2026.'
+      expect(note['data-testid']).to eq 'collection-aptrust-archive-note'
+    end
+
+    it 'renders nothing when the collection has never been archived' do
+      allow(AptrustBag).to receive(:archive_note_for_collection).with('col1').and_return(nil)
+      expect(helper.aptrust_archive_note('col1')).to be_nil
+    end
+  end
+
   describe '#aptrust_submission_link' do
     let(:submission) { AptrustSubmission.new(sid: 'sid-abc123') }
 

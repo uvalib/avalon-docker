@@ -40,6 +40,12 @@ module AptrustHelper
     STATUS_STYLES.fetch(submission.status, 'aptrust-state--active')
   end
 
+  # Public "last archived to APTrust" line for a collection page, or nil when nothing has been archived
+  def aptrust_archive_note(collection_id)
+    note = AptrustBag.archive_note_for_collection(collection_id)
+    tag.p(note, data: { testid: 'collection-aptrust-archive-note' }) if note
+  end
+
   # Links the submission id to its page in the aptrust-submit client, when that page is configured
   def aptrust_submission_link(submission)
     return '—' if submission.sid.blank?
