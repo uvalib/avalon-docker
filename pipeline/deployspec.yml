@@ -11,7 +11,10 @@ env:
 phases:
   install:
     runtime-versions:
-      python: 3.x
+      # 3.x resolves to 3.15. ansible-core 2.21 crashes on import there
+      # (dataclasses._is_type was removed). 2.22, which supports 3.15,
+      # is not GA until 2026-11-02. 3.14 is the newest 2.21 supports.
+      python: 3.14
       golang: 1.x
     commands:
       # install ccrypt

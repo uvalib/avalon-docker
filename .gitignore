@@ -1,4 +1,6 @@
 .env
+.prod.env
+.staging.env
 .DS_Store
 masterfiles/*
 *.log
