@@ -119,9 +119,11 @@ class GenerateCaptionsJob < ActiveJob::Base
 
         return
 
-      when 'ERROR'
-        # log
-        Rails.logger.error(resp.transcription_job.failure_reason)
+      when 'FAILED', 'ERROR'
+        # Don't retry: resubmitting the same media will fail the same way.
+        # Delete the failed AWS job so a later caption request can start fresh
+        Rails.logger.error("Transcription job #{job_name} failed: #{resp.transcription_job.failure_reason}")
+        client.delete_transcription_job({ transcription_job_name: job_name })
         return
       when 'QUEUED', 'IN_PROGRESS'
         # retry later
